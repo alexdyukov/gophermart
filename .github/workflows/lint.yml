@@ -2,9 +2,13 @@ name: linter
 
 on:
   push:
-    branches: [ "develop" ]
+    branches-ignore:
+      - 'master'
+      - 'develop'
   pull_request:
-    branches: [ "develop" ]
+    branches-ignore: 
+      - 'master'
+      - 'develop'
 
 
 jobs:
