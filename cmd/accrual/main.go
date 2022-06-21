@@ -23,7 +23,7 @@ func main() {
 	// other middlewares
 
 	// Storage
-	memRepo := memory.NewAccrualMemoryStore()
+	memRepo := memory.NewAccrualStore()
 
 	// Handlers
 	accrualRouter.Get("/api/orders/{number}", handler.GetOrders(usecase.NewShowLoyaltyPoints(memRepo)))
