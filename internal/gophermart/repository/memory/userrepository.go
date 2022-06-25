@@ -1,16 +1,15 @@
-package inMemory
+package memory
 
 import (
 	"errors"
 	"fmt"
-	"github.com/alexdyukov/gophermart/internal/storage"
 )
 
 type UsrRepository struct {
-	users map[int]*storage.UsersModel
+	users map[int]*UsersModel
 }
 
-func (u UsrRepository) Set(s *storage.UsersModel) error {
+func (u UsrRepository) Set(s *UsersModel) error {
 	fmt.Printf("добавляем пользователя %v \n", s.Login)
 	s.ID = len(u.users) + 1
 	u.users[s.ID] = s
@@ -18,7 +17,7 @@ func (u UsrRepository) Set(s *storage.UsersModel) error {
 	return nil
 }
 
-func (u UsrRepository) Get(login string) (*storage.UsersModel, error) {
+func (u UsrRepository) Get(login string) (*UsersModel, error) {
 
 	for _, u := range u.users {
 		if u.Login == login {

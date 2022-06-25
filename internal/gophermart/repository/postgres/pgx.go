@@ -2,12 +2,24 @@ package postgres
 
 import (
 	"database/sql"
-
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 )
 
 type GophermartStore struct {
 	db *sql.DB
+}
+
+func NewDB(dataSourceName string) (*GophermartStore, error) {
+
+	dataBase, err := sql.Open("pgx", dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+
+	db := GophermartStore{db: dataBase}
+	db.initSchema()
+
+	return &db, nil
 }
 
 func NewGophermartStore() *GophermartStore {
@@ -34,4 +46,9 @@ func (p *GophermartStore) SaveOrderNumber(core.OrderNumber) error {
 func (p *GophermartStore) SaveAccount(core.Account) error {
 	// work with db
 	return nil
+}
+
+func (p *GophermartStore) initSchema() error {
+	_, err := p.db.Exec(photosSchema)
+	return err
 }

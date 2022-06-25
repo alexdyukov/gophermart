@@ -1,13 +1,6 @@
-package storage
+package memory
 
 import "time"
-
-const (
-	StNew        = "NEW"
-	StProcessing = "PROCESSING"
-	StInvalid    = "INVALID"
-	StProcessed  = "PROCESSED"
-)
 
 type UsersModel struct {
 	ID       int    `json:"id"`

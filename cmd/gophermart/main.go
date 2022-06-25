@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/alexdyukov/gophermart/internal/gophermart/repository/memory"
 	"log"
 	"net/http"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler"
-	"github.com/alexdyukov/gophermart/internal/gophermart/repository/postgres"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -17,7 +17,8 @@ func main() {
 	gophermartRouter := chi.NewRouter()
 
 	// Storage
-	gophermartStore := postgres.NewGophermartStore()
+	//gophermartStore := postgres.NewGophermartStore()
+	gophermartStore := memory.NewGophermartStore()
 
 	// Authentication handlers
 
