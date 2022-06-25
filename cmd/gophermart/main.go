@@ -4,18 +4,39 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/alexdyukov/gophermart/internal/config"
-	svc "github.com/alexdyukov/gophermart/internal/gophermartsvc"
-	"github.com/alexdyukov/gophermart/internal/handler"
-	"github.com/alexdyukov/gophermart/internal/storage"
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
+	"github.com/alexdyukov/gophermart/internal/gophermart/handler"
+	"github.com/alexdyukov/gophermart/internal/gophermart/repository/postgres"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 func main() {
-	conf := config.Get()
 
-	stor := storage.New(conf.StorageType)
-	svc := svc.New(conf.AccrualAddress, stor)
-	h := handler.New(conf, svc)
+	// Router
+	gophermartRouter := chi.NewRouter()
 
-	log.Fatal(http.ListenAndServe(conf.ServerAddress.String(), h))
+	// Storage
+	gophermartStore := postgres.NewGophermartStore()
+
+	// Authentication handlers
+
+	// Chi middlewares
+	gophermartRouter.Use(middleware.Recoverer)
+	// other middlewares, i.e. authorize
+
+	// Handlers
+	gophermartRouter.Post("/api/user/orders", handler.PostOrder(usecase.NewLoadOrderNumber(gophermartStore)))
+	gophermartRouter.Get("/api/user/orders", handler.GetOrders(usecase.NewListOrderNums(gophermartStore)))
+	gophermartRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowBalanceState(gophermartStore)))
+	gophermartRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawFunds(gophermartStore)))
+	gophermartRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(usecase.NewListWithdrawals(gophermartStore)))
+
+	server := http.Server{
+		Addr:    ":8089",
+		Handler: gophermartRouter,
+	}
+
+	err := server.ListenAndServe()
+	log.Print(err)
 }

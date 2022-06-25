@@ -4,18 +4,36 @@ import (
 	"log"
 	"net/http"
 
-	svc "github.com/alexdyukov/gophermart/internal/accrualsvc"
-	"github.com/alexdyukov/gophermart/internal/config"
-	"github.com/alexdyukov/gophermart/internal/handler"
-	"github.com/alexdyukov/gophermart/internal/storage"
+	"github.com/alexdyukov/gophermart/internal/accrual/domain/usecase"
+	"github.com/alexdyukov/gophermart/internal/accrual/handler"
+	"github.com/alexdyukov/gophermart/internal/accrual/repository/memory"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 func main() {
-	conf := config.Get()
 
-	stor := storage.New(conf.StorageType)
-	svc := svc.New(stor)
-	h := handler.New(conf, svc)
+	// config..
 
-	log.Fatal(http.ListenAndServe(conf.ServerAddress.String(), h))
+	// Router
+	accrualRouter := chi.NewRouter()
+
+	// Chi middlewares
+	accrualRouter.Use(middleware.Recoverer)
+	// other middlewares
+
+	// Storage
+	memRepo := memory.NewAccrualStore()
+
+	// Handlers
+	accrualRouter.Get("/api/orders/{number}", handler.GetOrders(usecase.NewShowLoyaltyPoints(memRepo)))
+	accrualRouter.Post("/api/orders", handler.PostOrders(usecase.NewCalculateLoyaltyPoints(memRepo)))
+	accrualRouter.Post("/api/goods", handler.PostGoods(usecase.NewRegisterMechanic(memRepo)))
+
+	server := http.Server{
+		Addr:    ":8088",
+		Handler: accrualRouter,
+	}
+	err := server.ListenAndServe()
+	log.Print(err)
 }
