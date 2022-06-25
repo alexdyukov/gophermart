@@ -1,0 +1,93 @@
+run:
+  timeout: 5m
+  tests: false
+  modules-download-mode: readonly
+  go: 1.18
+
+linters:
+  enable-all: true
+  disable:
+    - revive #TODO
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  gosimple:
+    go: "1.18"
+    checks: ["all"]
+  govet:
+    check-shadowing: true
+    enable-all: true
+  staticcheck:
+    go: "1.18"
+    checks: ["all"]
+  decorder:
+    disable-dec-order-check: false
+    disable-init-func-first-check: false
+    disable-dec-num-check: false
+  dogsled:
+    max-blank-identifiers: 1
+  errchkjson:
+    report-no-exported: true
+  exhaustive:
+    check-generated: true
+    default-signifies-exhaustive: true
+  funlen:
+    lines: 40
+    statements: 20
+  gci:
+    no-inline-comments: true
+    no-prefix-comments: true
+  gocognit:
+    min-complexity: 15
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+    settings:
+      captLocal:
+        paramsOnly: false
+      hugeParam:
+        sizeThreshold: 40
+      truncateCmp:
+        skipArchDependent: false
+      underef:
+        skipRecvDeref: false
+      unnamedResult:
+        checkExported: true
+  gofumpt:
+    extra-rules: true
+  gomnd:
+    ignored-numbers:
+      - '10' #TODO
+  gomoddirectives:
+    replace-local: true
+  gosec:
+    config:
+      global:
+        audit: true
+  grouper:
+    const-require-single-const: true
+    const-require-grouping: true
+    import-require-single-import: true
+    import-require-grouping: false
+    type-require-single-type: true
+    type-require-grouping: false
+    var-require-single-var: true
+    var-require-grouping: false
+  tenv:
+    all: true
+  varnamelen:
+    check-receiver: true
+    check-return: true
+    check-type-param: true
+    ignore-type-assert-ok: true
+    ignore-map-index-ok: true
+    ignore-chan-recv-ok: true
+    ignore-names:
+      - err
+  whitespace:
+    multi-if: true
+    multi-func: true
