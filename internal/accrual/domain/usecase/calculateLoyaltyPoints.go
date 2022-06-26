@@ -1,5 +1,7 @@
 package usecase
 
+import "context"
+
 // async usecase
 
 type CalculateLoyaltyPointsRepository interface {
@@ -11,7 +13,7 @@ type CalculateLoyaltyPointsInputDTO struct {
 }
 
 type CalculateLoyaltyPointsInputPort interface {
-	Execute(CalculateLoyaltyPointsInputDTO) error
+	Execute(CalculateLoyaltyPointsInputDTO, context.Context) error
 }
 
 type CalculateLoyaltyPoints struct {
@@ -24,7 +26,7 @@ func NewCalculateLoyaltyPoints(repo CalculateLoyaltyPointsRepository) *Calculate
 	}
 }
 
-func (c *CalculateLoyaltyPoints) Execute(dto CalculateLoyaltyPointsInputDTO) error {
+func (c *CalculateLoyaltyPoints) Execute(dto CalculateLoyaltyPointsInputDTO, ctx context.Context) error {
 	// todo: make needed checks
 	// todo: start calculation process
 	// i.e. save to DB calculation data to calculate points
