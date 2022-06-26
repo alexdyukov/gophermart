@@ -9,23 +9,9 @@ type GophermartStore struct {
 	db *sql.DB
 }
 
-func NewDB(dataSourceName string) (*GophermartStore, error) {
-
-	dataBase, err := sql.Open("pgx", dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-
-	db := GophermartStore{db: dataBase}
-	db.initSchema()
-
-	return &db, nil
-}
-
 func NewGophermartStore() *GophermartStore {
-	return &GophermartStore{
-		// set up db
-	}
+
+	return &GophermartStore{}
 }
 
 func (p *GophermartStore) GetOrdersByUser(user string) []core.OrderNumber {
@@ -46,9 +32,4 @@ func (p *GophermartStore) SaveOrderNumber(core.OrderNumber) error {
 func (p *GophermartStore) SaveAccount(core.Account) error {
 	// work with db
 	return nil
-}
-
-func (p *GophermartStore) initSchema() error {
-	_, err := p.db.Exec(photosSchema)
-	return err
 }
