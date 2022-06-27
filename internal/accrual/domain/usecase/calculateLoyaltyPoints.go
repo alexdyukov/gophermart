@@ -13,7 +13,7 @@ type CalculateLoyaltyPointsInputDTO struct {
 }
 
 type CalculateLoyaltyPointsInputPort interface {
-	Execute(CalculateLoyaltyPointsInputDTO, context.Context) error
+	Execute(context.Context, CalculateLoyaltyPointsInputDTO) error
 }
 
 type CalculateLoyaltyPoints struct {
@@ -26,7 +26,7 @@ func NewCalculateLoyaltyPoints(repo CalculateLoyaltyPointsRepository) *Calculate
 	}
 }
 
-func (c *CalculateLoyaltyPoints) Execute(dto CalculateLoyaltyPointsInputDTO, ctx context.Context) error {
+func (c *CalculateLoyaltyPoints) Execute(ctx context.Context, dto CalculateLoyaltyPointsInputDTO) error {
 	// todo: make needed checks
 	// todo: start calculation process
 	// i.e. save to DB calculation data to calculate points

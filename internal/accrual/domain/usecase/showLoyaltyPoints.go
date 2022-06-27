@@ -9,11 +9,11 @@ import (
 )
 
 type ShowLoyaltyPointsRepository interface {
-	GetLoyaltyPointsByOrderNumber(int, context.Context) (core.Answer, error)
+	GetLoyaltyPointsByOrderNumber(context.Context, int) (core.Answer, error)
 }
 
 type ShowLoyaltyPointsInputPort interface {
-	Execute(int, context.Context) (core.Answer, error)
+	Execute(context.Context, int) (core.Answer, error)
 }
 
 type ShowLoyaltyPoints struct {
@@ -26,16 +26,12 @@ func NewShowLoyaltyPoints(repo ShowLoyaltyPointsRepository) *ShowLoyaltyPoints {
 	}
 }
 
-func (s *ShowLoyaltyPoints) Execute(number int, ctx context.Context) (core.Answer, error) {
-	select {
-	case <-ctx.Done():
-		return core.Answer{}, nil
-	default:
-		if sharedkernel.ValidLuhn(strconv.Itoa(number)) {
-			str, err := s.Repo.GetLoyaltyPointsByOrderNumber(number, ctx)
-			return str, err
-		}
-		return core.Answer{}, errors.New("Номер заказа не валиден. не удовлетворяет алгоритму Луна")
+func (s *ShowLoyaltyPoints) Execute(ctx context.Context, number int) (core.Answer, error) {
+
+	if sharedkernel.ValidLuhn(strconv.Itoa(number)) {
+		str, err := s.Repo.GetLoyaltyPointsByOrderNumber(ctx, number)
+		return str, err
 	}
+	return core.Answer{}, errors.New("Номер заказа не валиден. не удовлетворяет алгоритму Луна")
 
 }

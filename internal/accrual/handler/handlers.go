@@ -16,7 +16,7 @@ func GetOrders(uc usecase.ShowLoyaltyPointsInputPort) http.HandlerFunc {
 		fmt.Println("bla")
 		number := chi.URLParam(request, "number")
 		n, _ := strconv.Atoi(number)
-		answ, err := uc.Execute(n, request.Context())
+		answ, err := uc.Execute(request.Context(), n)
 		if err != nil {
 			// 500 — внутренняя ошибка сервера.
 			writer.WriteHeader(500)
@@ -39,7 +39,7 @@ func GetOrders(uc usecase.ShowLoyaltyPointsInputPort) http.HandlerFunc {
 func PostOrders(uc usecase.CalculateLoyaltyPointsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		dto := usecase.CalculateLoyaltyPointsInputDTO{}
-		err := uc.Execute(dto, request.Context())
+		err := uc.Execute(request.Context(), dto)
 		if err != nil {
 			// todo: log error
 			// todo: prepare response
