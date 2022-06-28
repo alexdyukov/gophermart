@@ -1,14 +1,17 @@
 package usecase
 
-import "github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+import (
+	"context"
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+)
 
 type WithdrawFundsRepository interface {
-	GetAccountByID(string) (core.Account, error)
+	GetAccountByID(context.Context, string) (core.Account, error)
 	SaveAccount(core.Account) error
 }
 
 type WithdrawFundsInputPort interface {
-	Execute(string, WithdrawFundsInputDTO) error
+	Execute(context.Context, string, WithdrawFundsInputDTO) error
 }
 
 // WithdrawFundsInputDTO Example of DTO with json at usecase level not quite correct
@@ -27,9 +30,9 @@ func NewWithdrawFunds(repo WithdrawFundsRepository) *WithdrawFunds {
 	}
 }
 
-func (w *WithdrawFunds) Execute(id string, dto WithdrawFundsInputDTO) error {
+func (w *WithdrawFunds) Execute(ctx context.Context, id string, dto WithdrawFundsInputDTO) error {
 
-	account, _ := w.Repo.GetAccountByID(id)
+	account, _ := w.Repo.GetAccountByID(ctx, id)
 	// do work with account
 	_ = account.WithdrawPoints(dto.Order, dto.Sum)
 	_ = w.Repo.SaveAccount(account)

@@ -1,17 +1,18 @@
 package usecase
 
 import (
+	"context"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 )
 
 type ListWithdrawalsRepository interface {
-	GetAccountByID(string) (core.Account, error)
+	GetAccountByID(context.Context, string) (core.Account, error)
 }
 
 type ListWithdrawalsInputPort interface {
-	Execute(string) (ListWithdrawalsOutputDTO, error)
+	Execute(context.Context, string) (ListWithdrawalsOutputDTO, error)
 }
 
 type ListWithdrawalsOutputDTO struct {
@@ -30,8 +31,8 @@ func NewListWithdrawals(repo ListWithdrawalsRepository) *ListWithdrawals {
 	}
 }
 
-func (l *ListWithdrawals) Execute(id string) (ListWithdrawalsOutputDTO, error) {
-	_, _ = l.Repo.GetAccountByID(id)
+func (l *ListWithdrawals) Execute(ctx context.Context, id string) (ListWithdrawalsOutputDTO, error) {
+	_, _ = l.Repo.GetAccountByID(ctx, id)
 	// prepare DTO response
 	return ListWithdrawalsOutputDTO{}, nil
 }

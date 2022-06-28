@@ -1,18 +1,21 @@
 package usecase
 
-import "github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+import (
+	"context"
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+)
 
 type ShowBalanceStateRepo interface {
-	GetAccountByID(string) (core.Account, error)
+	GetAccountByID(context.Context, string) (core.Account, error)
 }
 
 type ShowBalanceStateInputPort interface {
-	Execute(string) (ShowBalanceStateOutputDTO, error)
+	Execute(context.Context, string) (ShowBalanceStateOutputDTO, error)
 }
 
 type ShowBalanceStateOutputDTO struct {
-	// current..
-	// withdrawn..
+	Current   float32 `json:"current"`
+	Withdrawn float32 `json:"withdrawn"`
 }
 
 type ShowBalanceState struct {
@@ -25,9 +28,9 @@ func NewShowBalanceState(repo ShowBalanceStateRepo) *ShowBalanceState {
 	}
 }
 
-func (s *ShowBalanceState) Execute(id string) (ShowBalanceStateOutputDTO, error) {
+func (s *ShowBalanceState) Execute(ctx context.Context, id string) (ShowBalanceStateOutputDTO, error) {
 	// checks..
-	_, err := s.Repo.GetAccountByID(id)
+	_, err := s.Repo.GetAccountByID(ctx, id)
 	if err != nil {
 		// process error
 	}

@@ -1,13 +1,17 @@
 package usecase
 
-import "github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+import (
+	"context"
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"time"
+)
 
 type ListOrderNumsRepository interface {
-	GetOrdersByUser(string) []core.OrderNumber
+	GetOrdersByUser(context.Context, string) ([]core.OrderNumber, error)
 }
 
 type ListOrderNumsInputPort interface {
-	Execute(string) ([]core.OrderNumber, error)
+	Execute(context.Context, string) ([]ListOrderNumsDTO, error)
 }
 
 func NewListOrderNums(repo ListOrderNumsRepository) *ListOrderNums {
@@ -23,8 +27,25 @@ type ListOrderNums struct {
 // constructor
 // func NewListOrderNums ...
 
-func (l *ListOrderNums) Execute(user string) ([]core.OrderNumber, error) {
+type ListOrderNumsDTO struct {
+	Number  string    `json:"number"`
+	Status  string    `json:"status"`
+	Accrual int       `json:"accrual,omitempty"`
+	Data    time.Time `json:"uploaded_at"`
+}
+
+func (l *ListOrderNums) Execute(ctx context.Context, user string) ([]ListOrderNumsDTO, error) {
 	// checkings
-	orders := l.Repo.GetOrdersByUser(user)
-	return orders, nil
+	orders, err := l.Repo.GetOrdersByUser(ctx, user)
+
+	if err != nil {
+		return nil, err
+	}
+
+	lstOrdNumsDTO := make([]ListOrderNumsDTO, 0)
+
+	for _, order := range orders {
+		lstOrdNumsDTO = append(lstOrdNumsDTO, ListOrderNumsDTO{Number: order.Number, Status: order.Status.String(), Accrual: order.Accrual, Data: order.Data})
+	}
+	return lstOrdNumsDTO, nil
 }

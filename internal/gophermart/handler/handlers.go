@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -33,23 +32,23 @@ func PostOrder(uc usecase.LoadOrderNumberInputPort) http.HandlerFunc {
 // GetOrders GET /api/user/orders — получение списка загруженных пользователем номеров заказов, статусов их обработки и информации о начислениях;
 func GetOrders(uc usecase.ListOrderNumsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		user := "some user.."
-		list, err := uc.Execute(user)
+		user := "1" // тут мы должны будем получить пользователя после авторизации
+		list, err := uc.Execute(request.Context(), user)
 		if err != nil {
-			// todo: log
-			// todo: prepare response
+			//204 — нет данных для ответа.
+			//401 — пользователь не авторизован.
+			//500 — внутренняя ошибка сервера.
+			// взависимости от полученной ошибки возвращаем тот или иной ответ, пока не ясно как эти ошибки получаем
 			return
 		}
 
-		// prepare to output
-		// marshal etc
-		fmt.Println(list)
-
 		//200 — успешная обработка запроса.
-		//204 — нет данных для ответа.
-		//401 — пользователь не авторизован.
-		//500 — внутренняя ошибка сервера.
 		writer.WriteHeader(200)
+		writer.Header().Set("Content-Type", "application/json")
+		strJSON, err := json.Marshal(list)
+
+		_, err = writer.Write(strJSON)
+
 	}
 }
 
@@ -57,7 +56,7 @@ func GetOrders(uc usecase.ListOrderNumsInputPort) http.HandlerFunc {
 func GetBalance(uc usecase.ShowBalanceStateInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user := "some user"
-		_, err := uc.Execute(user)
+		_, err := uc.Execute(request.Context(), user)
 		if err != nil {
 			// todo: log
 			// todo: prepare response
@@ -81,7 +80,7 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 		bytes, _ := io.ReadAll(request.Body)
 		_ = json.Unmarshal(bytes, &dto)
 
-		err := uc.Execute(user, dto)
+		err := uc.Execute(request.Context(), user, dto)
 		if err != nil {
 			// todo: log
 			// todo: prepare response
@@ -100,7 +99,7 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user := "some user"
-		_, err := uc.Execute(user)
+		_, err := uc.Execute(request.Context(), user)
 		if err != nil {
 			// todo: log
 			// todo: prepare response

@@ -12,26 +12,26 @@ type withdraw struct {
 }
 
 type Account struct {
-	id              string
-	user            string //owner
-	points          int
-	withdrawHistory []withdraw
+	Id              string
+	User            string //owner
+	Points          int
+	WithdrawHistory []withdraw
 }
 
 func NewAccount(user string) Account {
 	return Account{
-		user: user,
+		User: user,
 	}
 }
 
 func (a *Account) CurrentPoints() int {
-	return a.points
+	return a.Points
 }
 
 func (a *Account) AddPoints() { /* calculations.. */ }
 
 func (a *Account) WithdrawPoints(order int, amount int) error {
-	if amount > a.points {
+	if amount > a.Points {
 		return errors.New("not enough funds")
 	}
 	w := withdraw{
@@ -39,8 +39,8 @@ func (a *Account) WithdrawPoints(order int, amount int) error {
 		Amount:      amount,
 		time:        time.Now().Unix(),
 	}
-	a.points = -amount
-	a.withdrawHistory = append(a.withdrawHistory, w)
+	a.Points = -amount
+	a.WithdrawHistory = append(a.WithdrawHistory, w)
 	return nil
 }
 

@@ -1,20 +1,24 @@
 package core
 
-import "github.com/alexdyukov/gophermart/internal/sharedkernel"
+import (
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
+	"time"
+)
 
 // Move this to accrual ??
 
 type OrderNumber struct {
-	id      string
-	user    string // owner
-	number  string
-	status  sharedkernel.Status
-	accrual int
+	Id      string
+	User    string // owner
+	Number  string
+	Status  sharedkernel.Status
+	Accrual int
+	Data    time.Time
 }
 
 func NewOrderNumber(number int) OrderNumber {
 	return OrderNumber{
-		status: sharedkernel.NEW,
+		Status: sharedkernel.NEW,
 		// ...
 	}
 }
