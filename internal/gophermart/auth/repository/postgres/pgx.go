@@ -114,7 +114,7 @@ func (a *AuthStore) createUserTableIfNotExist() error {
 												CONSTRAINT login_uniq_constraint UNIQUE (login));
 												`)
 	if err != nil {
-		return err //nolint:wrapcheck
+		return err // nolint:wrapcheck // ok
 	}
 
 	return nil
