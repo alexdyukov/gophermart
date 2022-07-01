@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	authUsecase "github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
-	"github.com/alexdyukov/gophermart/internal/gophermart/auth/gateway/jwt"
+	"github.com/alexdyukov/gophermart/internal/gophermart/auth/gateway/token"
 	authHandler "github.com/alexdyukov/gophermart/internal/gophermart/auth/handler"
 	authPostgres "github.com/alexdyukov/gophermart/internal/gophermart/auth/repository/postgres"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
@@ -33,7 +33,7 @@ func main() {
 	}
 
 	var tokenTTL int64 = 60 * 5 // to config
-	jwtGateway := jwt.NewAuthJWTGateway(tokenTTL, []byte("secret"))
+	jwtGateway := token.NewAuthJWTGateway(tokenTTL, []byte("secret"))
 
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
