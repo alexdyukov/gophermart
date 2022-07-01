@@ -1,22 +1,22 @@
 package usecase
 
-// async usecase
+type (
+	CalculateLoyaltyPointsRepository interface {
+		SaveCalculationProcessData() error
+	}
 
-type CalculateLoyaltyPointsRepository interface {
-	SaveCalculationProcessData() error
-}
+	CalculateLoyaltyPointsInputDTO struct {
+		/* needed data */
+	}
 
-type CalculateLoyaltyPointsInputDTO struct {
-	/* needed data */
-}
+	CalculateLoyaltyPointsInputPort interface {
+		Execute(CalculateLoyaltyPointsInputDTO) error
+	}
 
-type CalculateLoyaltyPointsInputPort interface {
-	Execute(CalculateLoyaltyPointsInputDTO) error
-}
-
-type CalculateLoyaltyPoints struct {
-	repo CalculateLoyaltyPointsRepository
-}
+	CalculateLoyaltyPoints struct {
+		repo CalculateLoyaltyPointsRepository
+	}
+)
 
 func NewCalculateLoyaltyPoints(repo CalculateLoyaltyPointsRepository) *CalculateLoyaltyPoints {
 	return &CalculateLoyaltyPoints{
@@ -24,9 +24,7 @@ func NewCalculateLoyaltyPoints(repo CalculateLoyaltyPointsRepository) *Calculate
 	}
 }
 
-func (c *CalculateLoyaltyPoints) Execute(dto CalculateLoyaltyPointsInputDTO) error {
-	// todo: make needed checks
-	// todo: start calculation process
+func (c *CalculateLoyaltyPoints) Execute(CalculateLoyaltyPointsInputDTO) error {
 	// i.e. save to DB calculation data to calculate points
 	// in async approach
 	return nil

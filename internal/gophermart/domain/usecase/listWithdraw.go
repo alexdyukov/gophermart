@@ -4,25 +4,28 @@ import (
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
-type ListWithdrawalsRepository interface {
-	GetAccountByID(string) (core.Account, error)
-}
+type (
+	ListWithdrawalsRepository interface {
+		GetAccountByID(string) (core.Account, error)
+	}
 
-type ListWithdrawalsInputPort interface {
-	Execute(string) (ListWithdrawalsOutputDTO, error)
-}
+	ListWithdrawalsInputPort interface {
+		Execute(user *sharedkernel.User) (*ListWithdrawalsOutputDTO, error)
+	}
 
-type ListWithdrawalsOutputDTO struct {
-	Order       int
-	Sum         int
-	ProcessedAt time.Time
-}
+	ListWithdrawalsOutputDTO struct {
+		ProcessedAt time.Time
+		Order       int
+		Sum         int
+	}
 
-type ListWithdrawals struct {
-	Repo ListWithdrawalsRepository
-}
+	ListWithdrawals struct {
+		Repo ListWithdrawalsRepository
+	}
+)
 
 func NewListWithdrawals(repo ListWithdrawalsRepository) *ListWithdrawals {
 	return &ListWithdrawals{
@@ -30,8 +33,11 @@ func NewListWithdrawals(repo ListWithdrawalsRepository) *ListWithdrawals {
 	}
 }
 
-func (l *ListWithdrawals) Execute(id string) (ListWithdrawalsOutputDTO, error) {
-	_, _ = l.Repo.GetAccountByID(id)
-	// prepare DTO response
-	return ListWithdrawalsOutputDTO{}, nil
+func (l *ListWithdrawals) Execute(user *sharedkernel.User) (*ListWithdrawalsOutputDTO, error) {
+	_, err := l.Repo.GetAccountByID(user.ID())
+	if err != nil {
+		return nil, err // nolint:wrapcheck // ok
+	}
+
+	return &ListWithdrawalsOutputDTO{}, nil // nolint:exhaustivestruct // ok
 }

@@ -2,13 +2,19 @@ package usecase
 
 import "github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 
-type LoadOrderNumberRepository interface {
-	SaveOrderNumber(core.OrderNumber) error
-}
+type (
+	LoadOrderNumberRepository interface {
+		SaveOrderNumber(core.OrderNumber) error
+	}
 
-type LoadOrderNumberInputPort interface {
-	Execute(int) error
-}
+	LoadOrderNumberInputPort interface {
+		Execute(int) error
+	}
+
+	LoadOrderNumber struct {
+		Repo LoadOrderNumberRepository
+	}
+)
 
 func NewLoadOrderNumber(repo LoadOrderNumberRepository) *LoadOrderNumber {
 	return &LoadOrderNumber{
@@ -16,13 +22,13 @@ func NewLoadOrderNumber(repo LoadOrderNumberRepository) *LoadOrderNumber {
 	}
 }
 
-type LoadOrderNumber struct {
-	Repo LoadOrderNumberRepository
-}
-
 func (l LoadOrderNumber) Execute(number int) error {
-	// do work...
 	orderNumber := core.NewOrderNumber(number)
-	l.Repo.SaveOrderNumber(orderNumber)
+
+	err := l.Repo.SaveOrderNumber(orderNumber)
+	if err != nil {
+		return err //nolint:wrapcheck // ok
+	}
+
 	return nil
 }

@@ -1,14 +1,23 @@
 package usecase
 
-import "github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+import (
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
+)
 
-type ListOrderNumsRepository interface {
-	GetOrdersByUser(string) []core.OrderNumber
-}
+type (
+	ListOrderNumsRepository interface {
+		GetOrdersByUser(string) []core.OrderNumber
+	}
 
-type ListOrderNumsInputPort interface {
-	Execute(string) ([]core.OrderNumber, error)
-}
+	ListOrderNumsInputPort interface {
+		Execute(user *sharedkernel.User) ([]core.OrderNumber, error)
+	}
+
+	ListOrderNums struct {
+		Repo ListOrderNumsRepository
+	}
+)
 
 func NewListOrderNums(repo ListOrderNumsRepository) *ListOrderNums {
 	return &ListOrderNums{
@@ -16,15 +25,8 @@ func NewListOrderNums(repo ListOrderNumsRepository) *ListOrderNums {
 	}
 }
 
-type ListOrderNums struct {
-	Repo ListOrderNumsRepository
-}
+func (l *ListOrderNums) Execute(user *sharedkernel.User) ([]core.OrderNumber, error) {
+	orders := l.Repo.GetOrdersByUser(user.ID())
 
-// constructor
-// func NewListOrderNums ...
-
-func (l *ListOrderNums) Execute(user string) ([]core.OrderNumber, error) {
-	// checkings
-	orders := l.Repo.GetOrdersByUser(user)
 	return orders, nil
 }

@@ -2,10 +2,12 @@ package sharedkernel
 
 import "github.com/google/uuid"
 
+// NewUUID is UUID generator Facade
 func NewUUID() string {
-	id, err := uuid.NewRandom()
+	uid, err := uuid.NewRandom()
 	if err != nil {
 		panic(err)
 	}
-	return id.String()
+
+	return uid.String()
 }

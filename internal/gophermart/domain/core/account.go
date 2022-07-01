@@ -3,45 +3,56 @@ package core
 import (
 	"errors"
 	"time"
+
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
-type withdraw struct {
-	OrderNumber int
-	Amount      int
-	time        int64
-}
+// Pay attention this is the first iteration (a sort of Draft)
+// of the core structure, so no warranty it is correct or will not change.
+type (
+	withdraw struct {
+		OrderNumber int
+		Amount      int
+		time        int64
+	}
 
-type Account struct {
-	id              string
-	user            string //owner
-	points          int
-	withdrawHistory []withdraw
-}
+	Account struct {
+		id              string
+		user            string
+		withdrawHistory []withdraw
+		points          int
+	}
+)
 
-func NewAccount(user string) Account {
-	return Account{
-		user: user,
+var ErrNotEnoughFunds = errors.New("account do not have enough funds")
+
+func NewAccount(userID string) *Account {
+	return &Account{ // nolint:exhaustivestruct // ok
+		id:   sharedkernel.NewUUID(),
+		user: userID,
 	}
 }
 
-func (a *Account) CurrentPoints() int {
-	return a.points
+func (acc *Account) CurrentPoints() int {
+	return acc.points
 }
 
-func (a *Account) AddPoints() { /* calculations.. */ }
+func (acc *Account) AddPoints() { /* calculations.. */ }
 
-func (a *Account) WithdrawPoints(order int, amount int) error {
-	if amount > a.points {
-		return errors.New("not enough funds")
+// WithdrawPoints is just a representation of core model functionality (an example of core model behavior).
+func (acc *Account) WithdrawPoints(order, amount int) error {
+	if amount > acc.points {
+		return ErrNotEnoughFunds
 	}
-	w := withdraw{
+
+	with := withdraw{
 		OrderNumber: order,
 		Amount:      amount,
 		time:        time.Now().Unix(),
 	}
-	a.points = -amount
-	a.withdrawHistory = append(a.withdrawHistory, w)
+
+	acc.points = -amount
+	acc.withdrawHistory = append(acc.withdrawHistory, with)
+
 	return nil
 }
-
-// ... other funcs

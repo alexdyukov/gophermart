@@ -1,23 +1,27 @@
 package usecase
 
-import "github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+import (
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
+)
 
-type ShowBalanceStateRepo interface {
-	GetAccountByID(string) (core.Account, error)
-}
+type (
+	ShowBalanceStateRepo interface {
+		GetAccountByID(string) (core.Account, error)
+	}
 
-type ShowBalanceStateInputPort interface {
-	Execute(string) (ShowBalanceStateOutputDTO, error)
-}
+	ShowBalanceStateInputPort interface {
+		Execute(user *sharedkernel.User) (*ShowBalanceStateOutputDTO, error)
+	}
 
-type ShowBalanceStateOutputDTO struct {
-	// current..
-	// withdrawn..
-}
+	// ShowBalanceStateOutputDTO is an example of output DTO at usecase level
+	// actually, could not be needed!
+	ShowBalanceStateOutputDTO struct{}
 
-type ShowBalanceState struct {
-	Repo ShowBalanceStateRepo
-}
+	ShowBalanceState struct {
+		Repo ShowBalanceStateRepo
+	}
+)
 
 func NewShowBalanceState(repo ShowBalanceStateRepo) *ShowBalanceState {
 	return &ShowBalanceState{
@@ -25,12 +29,13 @@ func NewShowBalanceState(repo ShowBalanceStateRepo) *ShowBalanceState {
 	}
 }
 
-func (s *ShowBalanceState) Execute(id string) (ShowBalanceStateOutputDTO, error) {
-	// checks..
-	_, err := s.Repo.GetAccountByID(id)
+func (s *ShowBalanceState) Execute(user *sharedkernel.User) (*ShowBalanceStateOutputDTO, error) {
+	_, err := s.Repo.GetAccountByID(user.ID())
 	if err != nil {
-		// process error
+		return nil, err // nolint:wrapcheck // ok
 	}
-	// construct output
-	return ShowBalanceStateOutputDTO{ /* fill with data */ }, nil
+
+	core.NewAccount(user.ID())
+
+	return &ShowBalanceStateOutputDTO{}, nil
 }

@@ -7,21 +7,20 @@ import (
 )
 
 type GophermartStore struct {
-	db *sql.DB
+	*sql.DB
 }
 
 func NewGophermartStore() *GophermartStore {
-	return &GophermartStore{
-		// set up db
+	return &GophermartStore{ // nolint:exhaustivestruct // ok
 	}
 }
 
-func (p *GophermartStore) GetOrdersByUser(user string) []core.OrderNumber {
+func (p *GophermartStore) GetOrdersByUser(_ string) []core.OrderNumber {
 	// work with db
 	return nil
 }
 
-func (p *GophermartStore) GetAccountByID(id string) (core.Account, error) {
+func (p *GophermartStore) GetAccountByID(_ string) (core.Account, error) {
 	// work with db
 	return core.Account{}, nil
 }

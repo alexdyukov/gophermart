@@ -5,8 +5,8 @@ import "github.com/alexdyukov/gophermart/internal/sharedkernel"
 type RewardMechanic struct {
 	id           string
 	match        string
-	rewardPoints int
 	rewardType   string
+	rewardPoints int
 }
 
 func NewRewardMechanic(match string, rewardPoints int, rewardType string) RewardMechanic {

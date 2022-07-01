@@ -4,25 +4,27 @@ import (
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 )
 
-type RegisterMechanicInputPort interface {
-	Execute(string, RegisterMechanicInputDTO) error
-}
+type (
+	RegisterMechanicInputPort interface {
+		Execute(string, *RegisterMechanicInputDTO) error
+	}
 
-type RegisterMechanicRepository interface {
-	SaveMechanic(core.RewardMechanic) error
-}
+	RegisterMechanicRepository interface {
+		SaveMechanic(core.RewardMechanic) error
+	}
 
-type RegisterMechanicInputDTO struct {
-	/* mechanic fields */
-	pattern string
-	reward  int
-	typ     string
-}
-type RegisterMechanicOutputDTO struct{}
+	RegisterMechanicInputDTO struct {
+		pattern string
+		typ     string
+		reward  int
+	}
 
-type RegisterMechanic struct {
-	Repo RegisterMechanicRepository
-}
+	RegisterMechanicOutputDTO struct{}
+
+	RegisterMechanic struct {
+		Repo RegisterMechanicRepository
+	}
+)
 
 func NewRegisterMechanic(repo RegisterMechanicRepository) *RegisterMechanic {
 	return &RegisterMechanic{
@@ -30,9 +32,13 @@ func NewRegisterMechanic(repo RegisterMechanicRepository) *RegisterMechanic {
 	}
 }
 
-func (r *RegisterMechanic) Execute(user string, dto RegisterMechanicInputDTO) error {
-	// map DTO into Entity
+func (r *RegisterMechanic) Execute(_ string, dto *RegisterMechanicInputDTO) error {
 	mechanic := core.NewRewardMechanic(dto.pattern, dto.reward, dto.typ)
-	_ = r.Repo.SaveMechanic(mechanic)
+
+	err := r.Repo.SaveMechanic(mechanic)
+	if err != nil {
+		return err //nolint:wrapcheck // ok
+	}
+
 	return nil
 }

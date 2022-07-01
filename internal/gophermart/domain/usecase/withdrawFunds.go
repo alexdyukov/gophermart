@@ -1,25 +1,30 @@
 package usecase
 
-import "github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+import (
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
+)
 
-type WithdrawFundsRepository interface {
-	GetAccountByID(string) (core.Account, error)
-	SaveAccount(core.Account) error
-}
+type (
+	WithdrawFundsRepository interface {
+		GetAccountByID(string) (core.Account, error)
+		SaveAccount(core.Account) error
+	}
 
-type WithdrawFundsInputPort interface {
-	Execute(string, WithdrawFundsInputDTO) error
-}
+	WithdrawFundsInputPort interface {
+		Execute(*sharedkernel.User, WithdrawFundsInputDTO) error
+	}
 
-// WithdrawFundsInputDTO Example of DTO with json at usecase level not quite correct
-type WithdrawFundsInputDTO struct {
-	Order int `json:"order"`
-	Sum   int `json:"sum"`
-}
+	// WithdrawFundsInputDTO Example of DTO with json at usecase level, which not quite correct.
+	WithdrawFundsInputDTO struct {
+		Order int `json:"order"`
+		Sum   int `json:"sum"`
+	}
 
-type WithdrawFunds struct {
-	Repo WithdrawFundsRepository
-}
+	WithdrawFunds struct {
+		Repo WithdrawFundsRepository
+	}
+)
 
 func NewWithdrawFunds(repo WithdrawFundsRepository) *WithdrawFunds {
 	return &WithdrawFunds{
@@ -27,12 +32,15 @@ func NewWithdrawFunds(repo WithdrawFundsRepository) *WithdrawFunds {
 	}
 }
 
-func (w *WithdrawFunds) Execute(id string, dto WithdrawFundsInputDTO) error {
+func (w *WithdrawFunds) Execute(user *sharedkernel.User, _ WithdrawFundsInputDTO) error {
+	_, err := w.Repo.GetAccountByID(user.ID())
+	if err != nil {
+		return err // nolint:wrapcheck // ok
+	}
 
-	account, _ := w.Repo.GetAccountByID(id)
 	// do work with account
-	_ = account.WithdrawPoints(dto.Order, dto.Sum)
-	_ = w.Repo.SaveAccount(account)
+	// _ = account.WithdrawPoints(dto.Order, dto.Sum)
+	// _ = w.Repo.SaveAccount(account)
 
 	return nil
 }

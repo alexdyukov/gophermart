@@ -7,19 +7,19 @@ import (
 )
 
 type PgxDBAccrual struct {
-	db *sql.DB
+	*sql.DB
 }
 
 func (p *PgxDBAccrual) SaveCalculationProcessData() {
 	// work with db
 }
 
-func (p *PgxDBAccrual) SaveMechanic(mechanic core.RewardMechanic) error {
+func (p *PgxDBAccrual) SaveMechanic(_ *core.RewardMechanic) error {
 	// work with db
 	return nil
 }
 
-func (p *PgxDBAccrual) GetLoyaltyPointsByOrderNumber(number int) error {
+func (p *PgxDBAccrual) GetLoyaltyPointsByOrderNumber(_ int) error {
 	// work with db
 	return nil
 }

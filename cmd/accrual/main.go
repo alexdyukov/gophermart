@@ -12,9 +12,6 @@ import (
 )
 
 func main() {
-
-	// config..
-
 	// Router
 	accrualRouter := chi.NewRouter()
 
@@ -30,10 +27,11 @@ func main() {
 	accrualRouter.Post("/api/orders", handler.PostOrders(usecase.NewCalculateLoyaltyPoints(memRepo)))
 	accrualRouter.Post("/api/goods", handler.PostGoods(usecase.NewRegisterMechanic(memRepo)))
 
-	server := http.Server{
+	server := http.Server{ // nolint:exhaustivestruct // ok
 		Addr:    ":8088",
 		Handler: accrualRouter,
 	}
+
 	err := server.ListenAndServe()
 	log.Print(err)
 }

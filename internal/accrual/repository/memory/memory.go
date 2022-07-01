@@ -15,12 +15,12 @@ func (m *AccrualStore) SaveCalculationProcessData() error {
 	return nil
 }
 
-func (m *AccrualStore) SaveMechanic(mechanic core.RewardMechanic) error {
+func (m *AccrualStore) SaveMechanic(_ core.RewardMechanic) error {
 	// work with db
 	return nil
 }
 
-func (m *AccrualStore) GetLoyaltyPointsByOrderNumber(number int) error {
+func (m *AccrualStore) GetLoyaltyPointsByOrderNumber(_ int) error {
 	// work with db
 	return nil
 }
