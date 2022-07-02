@@ -32,7 +32,7 @@ func main() {
 	accrualRouter.Post("/api/orders", handler.PostOrders(usecase.NewCalculateLoyaltyPoints(memRepo)))
 	accrualRouter.Post("/api/goods", handler.PostGoods(usecase.NewRegisterMechanic(memRepo)))
 
-	fmt.Printf("#Run accural with IP: %s \n", appConf.RunAddr)
+	fmt.Printf("#Run accrual with IP: %s \n", appConf.RunAddr)
 	server := http.Server{
 		Addr:    appConf.RunAddr,
 		Handler: accrualRouter,

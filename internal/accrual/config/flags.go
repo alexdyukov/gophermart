@@ -18,7 +18,7 @@ func (p *AppFlags) DatabaseURI() string {
 }
 
 const (
-	DefaultAddress = "127.0.0.1:8088"
+	DefaultAddress = "127.0.0.1:44157"
 	DefaultDB      = "" //host=localhost dbname=ya_pr_devops
 )
 
