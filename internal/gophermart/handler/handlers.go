@@ -107,7 +107,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 			return
 		}
 
-		dto := usecase.WithdrawFundsInputDTO{} //nolint:exhaustivestruct // ok
+		dto := usecase.WithdrawFundsInputDTO{} // nolint:exhaustivestruct // ok,  exhaustive // ok.
 
 		bytes, err := io.ReadAll(request.Body)
 		if err != nil {

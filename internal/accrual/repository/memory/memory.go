@@ -3,7 +3,7 @@ package memory
 import "github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 
 type AccrualStore struct {
-	// map
+	// map.
 }
 
 func NewAccrualStore() *AccrualStore {
@@ -11,16 +11,16 @@ func NewAccrualStore() *AccrualStore {
 }
 
 func (m *AccrualStore) SaveCalculationProcessData() error {
-	// work with db
+	// work with db.
 	return nil
 }
 
-func (m *AccrualStore) SaveMechanic(_ core.RewardMechanic) error {
-	// work with db
+func (m *AccrualStore) SaveMechanic(_ *core.RewardMechanic) error {
+	// work with db.
 	return nil
 }
 
 func (m *AccrualStore) GetLoyaltyPointsByOrderNumber(_ int) error {
-	// work with db
+	// work with db.
 	return nil
 }

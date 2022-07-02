@@ -50,7 +50,7 @@ func main() {
 		subRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(usecase.NewListWithdrawals(gophermartStore)))
 	})
 
-	server := http.Server{ // nolint:exhaustivestruct // ok
+	server := http.Server{ // nolint:exhaustivestruct // ok, exhaustive // ok
 		Addr:    ":8089",
 		Handler: appRouter,
 	}

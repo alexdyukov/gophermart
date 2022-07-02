@@ -27,7 +27,7 @@ type (
 var ErrNotEnoughFunds = errors.New("account do not have enough funds")
 
 func NewAccount(userID string) *Account {
-	return &Account{ // nolint:exhaustivestruct // ok
+	return &Account{ // nolint:exhaustivestruct // ok.
 		id:   sharedkernel.NewUUID(),
 		user: userID,
 	}
@@ -37,7 +37,7 @@ func (acc *Account) CurrentPoints() int {
 	return acc.points
 }
 
-func (acc *Account) AddPoints() { /* calculations.. */ }
+func (acc *Account) AddPoints() {}
 
 // WithdrawPoints is just a representation of core model functionality (an example of core model behavior).
 func (acc *Account) WithdrawPoints(order, amount int) error {

@@ -27,7 +27,7 @@ func main() {
 	accrualRouter.Post("/api/orders", handler.PostOrders(usecase.NewCalculateLoyaltyPoints(memRepo)))
 	accrualRouter.Post("/api/goods", handler.PostGoods(usecase.NewRegisterMechanic(memRepo)))
 
-	server := http.Server{ // nolint:exhaustivestruct // ok
+	server := http.Server{ // nolint:exhaustivestruct // ok, exhaustive // ok
 		Addr:    ":8088",
 		Handler: accrualRouter,
 	}

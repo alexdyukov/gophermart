@@ -4,9 +4,9 @@ type Status int
 
 const (
 	NEW Status = iota
-	// PROCESSING
-	// INVALID
-	// PROCESSED
+	// PROCESSING.
+	// INVALID.
+	// PROCESSED.
 )
 
 func (s Status) String() string {

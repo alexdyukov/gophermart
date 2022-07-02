@@ -10,7 +10,7 @@ type (
 	}
 
 	RegisterMechanicRepository interface {
-		SaveMechanic(core.RewardMechanic) error
+		SaveMechanic(*core.RewardMechanic) error
 	}
 
 	RegisterMechanicInputDTO struct {
@@ -35,7 +35,7 @@ func NewRegisterMechanic(repo RegisterMechanicRepository) *RegisterMechanic {
 func (r *RegisterMechanic) Execute(_ string, dto *RegisterMechanicInputDTO) error {
 	mechanic := core.NewRewardMechanic(dto.pattern, dto.reward, dto.typ)
 
-	err := r.Repo.SaveMechanic(mechanic)
+	err := r.Repo.SaveMechanic(&mechanic)
 	if err != nil {
 		return err //nolint:wrapcheck // ok
 	}

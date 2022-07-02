@@ -26,7 +26,7 @@ func PostLogin(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
 			return
 		}
 
-		inputData := usecase.UserInputDTO{}
+		inputData := usecase.UserInputDTO{} // nolint:exhaustivestruct // ok.
 
 		err = json.Unmarshal(bytes, &inputData)
 		if err != nil {
@@ -36,7 +36,7 @@ func PostLogin(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
 			return
 		}
 
-		jwt, err := loginUsecase.Execute(request.Context(), inputData)
+		jwtString, err := loginUsecase.Execute(request.Context(), inputData)
 		if err != nil {
 			if errors.Is(err, usecase.ErrBadCredentials) {
 				log.Println(err)
@@ -50,9 +50,9 @@ func PostLogin(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
 			return
 		}
 
-		cookie := http.Cookie{
+		cookie := http.Cookie{ // nolint:exhaustivestruct // ok
 			Name:   "auth",
-			Value:  jwt,
+			Value:  jwtString,
 			MaxAge: 3600 * 24, //nolint:gomnd // temporary until config
 		}
 
@@ -77,7 +77,7 @@ func PostRegister(registerUsecase usecase.RegisterUserPrimaryPort) http.HandlerF
 			return
 		}
 
-		inputData := usecase.UserInputDTO{}
+		inputData := usecase.UserInputDTO{} // nolint:exhaustivestruct // ok
 
 		err = json.Unmarshal(bytes, &inputData)
 		if err != nil {
@@ -87,7 +87,7 @@ func PostRegister(registerUsecase usecase.RegisterUserPrimaryPort) http.HandlerF
 			return
 		}
 
-		jwt, err := registerUsecase.Execute(request.Context(), inputData)
+		jwtString, err := registerUsecase.Execute(request.Context(), inputData)
 		if err != nil {
 			if errors.Is(err, usecase.ErrLoginAlreadyExist) {
 				writer.WriteHeader(http.StatusConflict)
@@ -95,15 +95,15 @@ func PostRegister(registerUsecase usecase.RegisterUserPrimaryPort) http.HandlerF
 				return
 			}
 
-			log.Printf(err.Error())
+			log.Println(err.Error())
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
 
-		c := http.Cookie{
+		c := http.Cookie{ // nolint:exhaustivestruct, exhaustive  // ok
 			Name:   "auth",
-			Value:  jwt,
+			Value:  jwtString,
 			MaxAge: 3600 * 24, // nolint:gomnd // temporary until config
 		}
 		http.SetCookie(writer, &c)

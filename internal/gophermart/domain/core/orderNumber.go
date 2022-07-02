@@ -7,10 +7,10 @@ import "github.com/alexdyukov/gophermart/internal/sharedkernel"
 // Fields commented because of linter checks.
 type OrderNumber struct {
 	id string
-	// user string
+	// user string.
 	status sharedkernel.Status
 	number int
-	// accrual int
+	// accrual int.
 }
 
 func NewOrderNumber(number int) OrderNumber {

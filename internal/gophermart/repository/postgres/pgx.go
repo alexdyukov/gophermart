@@ -11,26 +11,26 @@ type GophermartStore struct {
 }
 
 func NewGophermartStore() *GophermartStore {
-	return &GophermartStore{ // nolint:exhaustivestruct // ok
+	return &GophermartStore{ // nolint:exhaustivestruct // ok.
 	}
 }
 
 func (p *GophermartStore) GetOrdersByUser(_ string) []core.OrderNumber {
-	// work with db
+	// work with db.
 	return nil
 }
 
 func (p *GophermartStore) GetAccountByID(_ string) (core.Account, error) {
-	// work with db
+	// work with db.
 	return core.Account{}, nil
 }
 
 func (p *GophermartStore) SaveOrderNumber(core.OrderNumber) error {
-	// work with db
+	// work with db.
 	return nil
 }
 
 func (p *GophermartStore) SaveAccount(core.Account) error {
-	// work with db
+	// work with db.
 	return nil
 }
