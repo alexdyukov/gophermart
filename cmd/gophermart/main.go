@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/alexdyukov/gophermart/internal/gophermart/config"
 	"log"
 	"net/http"
 
@@ -13,6 +14,8 @@ import (
 
 func main() {
 
+	//
+	appConf := config.NewAppConfig()
 	// Router
 	gophermartRouter := chi.NewRouter()
 
@@ -33,7 +36,7 @@ func main() {
 	gophermartRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(usecase.NewListWithdrawals(gophermartStore)))
 
 	server := http.Server{
-		Addr:    ":8089",
+		Addr:    appConf.RunAddr,
 		Handler: gophermartRouter,
 	}
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/alexdyukov/gophermart/internal/accrual/config"
 	"log"
 	"net/http"
 
@@ -14,7 +15,7 @@ import (
 func main() {
 
 	// config..
-
+	appConf := config.NewAppConfig()
 	// Router
 	accrualRouter := chi.NewRouter()
 
@@ -31,7 +32,7 @@ func main() {
 	accrualRouter.Post("/api/goods", handler.PostGoods(usecase.NewRegisterMechanic(memRepo)))
 
 	server := http.Server{
-		Addr:    ":8088",
+		Addr:    appConf.RunAddr,
 		Handler: accrualRouter,
 	}
 	err := server.ListenAndServe()
