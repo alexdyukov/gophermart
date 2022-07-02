@@ -55,17 +55,23 @@ func GetOrders(uc usecase.ListOrderNumsInputPort) http.HandlerFunc {
 // GetBalance GET /api/user/balance — получение текущего баланса счёта баллов лояльности пользователя;
 func GetBalance(uc usecase.ShowBalanceStateInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		user := "some user"
-		_, err := uc.Execute(request.Context(), user)
+		// делаю эту процедуру
+		user := "1" // тут мы должны будем получить пользователя после авторизации
+		// наверное получаем  данные из request??
+
+		balance, err := uc.Execute(request.Context(), user)
 		if err != nil {
-			// todo: log
-			// todo: prepare response
+			//401 — пользователь не авторизован.
+			//500 — внутренняя ошибка сервера.
 			return
 		}
+
 		//200 — успешная обработка запроса.
-		//401 — пользователь не авторизован.
-		//500 — внутренняя ошибка сервера.
 		writer.WriteHeader(200)
+		writer.Header().Set("Content-Type", "application/json")
+		strJSON, err := json.Marshal(balance)
+		_, err = writer.Write(strJSON)
+
 	}
 }
 

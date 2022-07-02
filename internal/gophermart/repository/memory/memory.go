@@ -55,6 +55,43 @@ func (p *GophermartStore) GetAccountByID(_ context.Context, id string) (core.Acc
 	return core.Account{}, nil
 }
 
+func (p *GophermartStore) GetBalance(_ context.Context, user string) (float32, float32, error) {
+
+	mOrderTest := make(map[int]OrderModel)
+
+	av1 := OrderModel{Number: "number1", UserID: "1", Status: sharedkernel.PROCESSED, Sum: 500, Date: time.Now()}
+	mOrderTest[1] = av1
+	av2 := OrderModel{Number: "number2", UserID: "1", Status: sharedkernel.NEW, Date: time.Now()}
+	av3 := OrderModel{Number: "number3", UserID: "1", Status: sharedkernel.PROCESSED, Sum: 300, Date: time.Now()}
+	mOrderTest[2] = av2
+	mOrderTest[3] = av3
+
+	mWithdrawalrTest := make(map[int]WithdrawalModel)
+
+	aw1 := WithdrawalModel{Number: "number4", UserID: "1", Sum: 300, Date: time.Now()}
+	mWithdrawalrTest[1] = aw1
+	p.orders = mOrderTest
+	p.withdrawals = mWithdrawalrTest
+
+	var sumCurr float32
+	var sumWithdwr float32
+
+	for _, ord := range p.orders {
+		if ord.UserID == user {
+			sumCurr += ord.Sum
+		}
+	}
+
+	for _, with := range p.withdrawals {
+		if with.UserID == user {
+			sumWithdwr += with.Sum
+		}
+	}
+
+	// work with db
+	return sumCurr, sumWithdwr, nil
+}
+
 func (p *GophermartStore) SaveOrderNumber(core.OrderNumber) error {
 	// work with db
 	return nil

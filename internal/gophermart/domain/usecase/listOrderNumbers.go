@@ -30,7 +30,7 @@ type ListOrderNums struct {
 type ListOrderNumsDTO struct {
 	Number  string    `json:"number"`
 	Status  string    `json:"status"`
-	Accrual int       `json:"accrual,omitempty"`
+	Accrual float32   `json:"accrual,omitempty"`
 	Data    time.Time `json:"uploaded_at"`
 }
 

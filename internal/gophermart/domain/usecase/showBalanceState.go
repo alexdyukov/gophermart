@@ -2,11 +2,10 @@ package usecase
 
 import (
 	"context"
-	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 )
 
 type ShowBalanceStateRepo interface {
-	GetAccountByID(context.Context, string) (core.Account, error)
+	GetBalance(context.Context, string) (float32, float32, error)
 }
 
 type ShowBalanceStateInputPort interface {
@@ -30,10 +29,11 @@ func NewShowBalanceState(repo ShowBalanceStateRepo) *ShowBalanceState {
 
 func (s *ShowBalanceState) Execute(ctx context.Context, id string) (ShowBalanceStateOutputDTO, error) {
 	// checks..
-	_, err := s.Repo.GetAccountByID(ctx, id)
+	currentAll, withdrawals, err := s.Repo.GetBalance(ctx, id)
+
 	if err != nil {
 		// process error
 	}
 	// construct output
-	return ShowBalanceStateOutputDTO{ /* fill with data */ }, nil
+	return ShowBalanceStateOutputDTO{Current: currentAll - withdrawals, Withdrawn: withdrawals}, nil
 }

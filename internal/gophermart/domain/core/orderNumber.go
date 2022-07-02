@@ -12,7 +12,7 @@ type OrderNumber struct {
 	User    string // owner
 	Number  string
 	Status  sharedkernel.Status
-	Accrual int
+	Accrual float32 // было int, мне кажется лучше сделать дробным
 	Data    time.Time
 }
 

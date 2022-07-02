@@ -6,22 +6,22 @@ import (
 )
 
 type UserModel struct {
-	ID       string `json:"-"`
-	Login    string `json:"login"`
-	Password string `json:"-"`
+	ID       string
+	Login    string
+	Password string
 }
 
 type OrderModel struct {
-	UserID string              `json:"-"`
-	Number string              `json:"number"`
-	Status sharedkernel.Status `json:"status"`
-	Sum    int                 `json:"accrual,omitempty"`
-	Date   time.Time           `json:"uploaded_at"`
+	UserID string
+	Number string
+	Status sharedkernel.Status
+	Sum    float32
+	Date   time.Time
 }
 
 type WithdrawalModel struct {
-	userID string    `json:"-"`
-	Number string    `json:"number"`
-	Sum    int       `json:"accrual,omitempty"`
-	Date   time.Time `json:"processed_at"`
+	UserID string
+	Number string
+	Sum    float32
+	Date   time.Time
 }
