@@ -18,17 +18,17 @@ func (p *AppFlags) DatabaseURI() string {
 }
 
 const (
-	DefaultAddress = "127.0.0.1:44157"
-	DefaultDB      = "" //host=localhost dbname=ya_pr_devops
+	DefaultAddressAS = "127.0.0.1:8089"
+	DefaultDB        = "" //host=localhost dbname=ya_pr_devops
 )
 
 func parseFlags() AppFlags {
-	var addr, databaseURI string
+	var addrAccrualSystem, databaseURI string
 
-	flag.StringVar(&addr, "a", DefaultAddress, "Host IP address")
+	flag.StringVar(&addrAccrualSystem, "r", DefaultAddressAS, "Host IP address accrual system")
 	flag.StringVar(&databaseURI, "d", DefaultDB, "Connection string for DB")
 	flag.Parse()
 
-	return AppFlags{addr: &addr, databaseURI: &databaseURI}
+	return AppFlags{addr: &addrAccrualSystem, databaseURI: &databaseURI}
 
 }

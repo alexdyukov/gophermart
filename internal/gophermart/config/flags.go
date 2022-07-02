@@ -23,9 +23,9 @@ func (p *AppFlags) AddrAccuralSystem() string {
 }
 
 const (
-	DefaultAddress   = "127.0.0.1:41343"
+	DefaultAddress   = "127.0.0.1:8088"
 	DefaultDB        = "" //host=localhost dbname=ya_pr_devops
-	DefaultAddressAS = "127.0.0.1:44157"
+	DefaultAddressAS = "127.0.0.1:8089"
 )
 
 func parseFlags() AppFlags {
