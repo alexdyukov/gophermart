@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/alexdyukov/gophermart/internal/gophermart/config"
 	"log"
 	"net/http"
@@ -35,6 +36,7 @@ func main() {
 	gophermartRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawFunds(gophermartStore)))
 	gophermartRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(usecase.NewListWithdrawals(gophermartStore)))
 
+	fmt.Printf("#Run gophermart with IP: %s \n", appConf.RunAddr)
 	server := http.Server{
 		Addr:    appConf.RunAddr,
 		Handler: gophermartRouter,
