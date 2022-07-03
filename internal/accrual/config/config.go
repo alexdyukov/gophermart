@@ -6,7 +6,7 @@ import (
 )
 
 type AppConfig struct {
-	RunAddr   string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	RunAddr   string `env:"RUN_ADDRESS"`
 	DBConnect string `env:"DATABASE_URI"`
 	sync.Once
 }
@@ -36,7 +36,7 @@ func NewAppConfig() *AppConfig {
 
 func (a *AppConfig) configure(appFlags FlagGetter) {
 
-	a.RunAddr = getEnv("ACCRUAL_SYSTEM_ADDRESS", DefaultAddressAS)
+	a.RunAddr = getEnv("RUN_ADDRESS", DefaultAddress)
 	a.DBConnect = getEnv("DATABASE_URI", DefaultDB)
 
 	if appFlags.Addr() != "" {
