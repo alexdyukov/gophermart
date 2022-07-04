@@ -16,7 +16,9 @@ import (
 func main() {
 
 	// config..
-	appConf := config.NewAppConfig()
+	//appConf := config.NewAppConfig()
+	appConf := config.NewAccrualConfig()
+
 	// Router
 	accrualRouter := chi.NewRouter()
 
