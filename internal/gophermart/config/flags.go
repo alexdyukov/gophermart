@@ -22,12 +22,6 @@ func (p *AppFlags) AddrAccuralSystem() string {
 	return *p.addrAccrualSystem
 }
 
-const (
-	DefaultAddress   = "127.0.0.1:8088"
-	DefaultDB        = "" //host=localhost dbname=ya_pr_devops
-	DefaultAddressAS = "127.0.0.1:8089"
-)
-
 func parseFlags() AppFlags {
 	var addr, databaseURI string
 	var addrAccrualSystem string

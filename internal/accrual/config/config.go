@@ -1,7 +1,6 @@
 package config
 
 import (
-	"os"
 	"sync"
 )
 
@@ -45,13 +44,4 @@ func (a *AppConfig) configure(appFlags FlagGetter) {
 	if appFlags.DatabaseURI() != "" {
 		a.DBConnect = appFlags.DatabaseURI()
 	}
-}
-
-func getEnv(key string, defaultVal string) string {
-
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return defaultVal
-
 }

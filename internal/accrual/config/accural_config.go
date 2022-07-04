@@ -2,6 +2,12 @@ package config
 
 import (
 	"flag"
+	"os"
+)
+
+const (
+	DefaultAddress = "127.0.0.1:8088"
+	DefaultDB      = "" //host=localhost dbname=ya_pr_devops
 )
 
 type ConfigAccrual struct {
@@ -16,10 +22,17 @@ func NewAccrualConfig() *ConfigAccrual {
 	flag.StringVar(&databaseURI, "d", getEnv("DATABASE_URI", DefaultDB), "Connection string for DB")
 	flag.Parse()
 
-	cnf := ConfigAccrual{
+	return &ConfigAccrual{
 		RunAddr:   addr,
 		DBConnect: databaseURI,
 	}
+}
 
-	return &cnf
+func getEnv(key string, defaultVal string) string {
+
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultVal
+
 }

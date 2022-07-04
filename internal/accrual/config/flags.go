@@ -9,11 +9,6 @@ type AppFlags struct {
 	databaseURI *string // -d
 }
 
-const (
-	DefaultAddress = "127.0.0.1:8088"
-	DefaultDB      = "" //host=localhost dbname=ya_pr_devops
-)
-
 func (p *AppFlags) Addr() string {
 	return *p.addr
 }
