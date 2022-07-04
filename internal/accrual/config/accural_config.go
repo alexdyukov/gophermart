@@ -12,8 +12,8 @@ type ConfigAccrual struct {
 func NewAccrualConfig() *ConfigAccrual {
 	var addr, databaseURI string
 
-	flag.StringVar(&addr, "a", getEnv("ADDRESS", DefaultAddress), "Host IP address")
-	flag.StringVar(&databaseURI, "d", getEnv("DATABASE_DSN", DefaultDB), "Connection string for DB")
+	flag.StringVar(&addr, "a", getEnv("RUN_ADDRESS", DefaultAddress), "Host IP address")
+	flag.StringVar(&databaseURI, "d", getEnv("DATABASE_URI", DefaultDB), "Connection string for DB")
 	flag.Parse()
 
 	cnf := ConfigAccrual{

@@ -16,7 +16,9 @@ import (
 func main() {
 
 	//
-	appConf := config.NewAppConfig()
+	//appConf := config.NewAppConfig()
+	appConf := config.NewGophermartConfig()
+
 	// Router
 	gophermartRouter := chi.NewRouter()
 
