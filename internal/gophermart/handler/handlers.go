@@ -124,17 +124,21 @@ func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 			writer.WriteHeader(204)
 
 		default:
-			{
+			writer.WriteHeader(200)
+			writer.Header().Set("Content-Type", "application/json")
 
-				writer.Header().Set("Content-Type", "application/json")
-				writer.WriteHeader(200)
-				strJSON, err := json.Marshal(wdrls)
-				if err != nil {
-					//500 — внутренняя ошибка сервера.
-					return
-				}
-				_, err = writer.Write(strJSON)
+			strJSON, err := json.Marshal(wdrls)
+			if err != nil {
+				writer.WriteHeader(500)
+				return
 			}
+
+			if _, err = writer.Write(strJSON); err != nil {
+
+				writer.WriteHeader(500)
+				return
+			}
+
 		}
 
 	}
