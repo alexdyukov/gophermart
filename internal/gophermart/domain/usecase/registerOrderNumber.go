@@ -45,7 +45,7 @@ func NewLoadOrderNumber(repo RegisterOrderRepository, gw RegisterOrderCalculatio
 
 func (ro *RegisterOrder) Execute(number int, user *sharedkernel.User) error {
 
-	// todo: check incoming number with Luhn algorithm
+	// todo: check incoming number
 
 	inputDTO, err := ro.ServiceGateway.GetOrderCalculationState(number)
 	if err != nil {

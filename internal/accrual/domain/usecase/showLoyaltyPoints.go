@@ -1,26 +1,26 @@
 package usecase
 
 type (
-	ShowLoyaltyPointsRepository interface {
+	ShowOrderCalculationRepository interface {
 		GetLoyaltyPointsByOrderNumber(int) error
 	}
 
-	ShowLoyaltyPointsInputPort interface {
+	ShowOrderCalculationPrimaryPort interface {
 		Execute(int) error
 	}
 
-	ShowLoyaltyPoints struct {
-		Repo ShowLoyaltyPointsRepository
+	ShowOrderCalculation struct {
+		Repo ShowOrderCalculationRepository
 	}
 )
 
-func NewShowLoyaltyPoints(repo ShowLoyaltyPointsRepository) *ShowLoyaltyPoints {
-	return &ShowLoyaltyPoints{
+func NewShowLoyaltyPoints(repo ShowOrderCalculationRepository) *ShowOrderCalculation {
+	return &ShowOrderCalculation{
 		Repo: repo,
 	}
 }
 
-func (s *ShowLoyaltyPoints) Execute(number int) error {
+func (s *ShowOrderCalculation) Execute(number int) error {
 	err := s.Repo.GetLoyaltyPointsByOrderNumber(number)
 	if err != nil {
 		return err //nolint:wrapcheck // ok

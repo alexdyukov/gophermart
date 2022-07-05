@@ -29,8 +29,8 @@ func NewAuthStore(db *sql.DB) (*AuthStore, error) {
 	return &authStore, nil
 }
 
-// nolint:funlen // tx need many statements, tx is here for future usage will be needed to add another SQL stmts
-// checking queries etc. For using another user saving mechanic.
+// SaveUserIfNotExist contains tx for future usage If it will be needed to add another SQL stmts
+// checking queries etc. For using another saving mechanic.
 func (a *AuthStore) SaveUserIfNotExist(ctx context.Context, user *sharedkernel.User, hashed string) error {
 	transaction, err := a.db.Begin()
 	if err != nil {

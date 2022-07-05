@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -9,11 +10,14 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// GetOrders GET /api/orders/{number} — получение информации о расчёте начислений баллов лояльности;
+// OrderCalculationGetHandler GET /api/orders/{number} — получение информации о расчёте начислений баллов лояльности;
 // 429 — превышено количество запросов к сервису.
 // 500 — внутренняя ошибка сервера.
-func GetOrders(showLoyaltyUsecase usecase.ShowLoyaltyPointsInputPort) http.HandlerFunc {
+func OrderCalculationGetHandler(showLoyaltyUsecase usecase.ShowOrderCalculationPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+
+		fmt.Println("ping get orders")
+
 		number := chi.URLParam(request, "number")
 
 		n, err := strconv.Atoi(number)
@@ -30,14 +34,14 @@ func GetOrders(showLoyaltyUsecase usecase.ShowLoyaltyPointsInputPort) http.Handl
 	}
 }
 
-// PostOrders POST /api/orders — регистрация нового совершённого заказа.
+// RegisterOrderPostHandler POST /api/orders — регистрация нового совершённого заказа.
 // 202 — заказ успешно принят в обработку;
 // 400 — неверный формат запроса;
 // 409 — заказ уже принят в обработку;
 // 500 — внутренняя ошибка сервера.
-func PostOrders(calculateLoyaltyUsecase usecase.CalculateLoyaltyPointsInputPort) http.HandlerFunc {
+func RegisterOrderPostHandler(calculateLoyaltyUsecase usecase.RegisterPurchasedOrderPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		dto := usecase.CalculateLoyaltyPointsInputDTO{}
+		dto := usecase.RegisterPurchasedOrderInputDTO{}
 
 		err := calculateLoyaltyUsecase.Execute(dto)
 		if err != nil {
@@ -48,12 +52,12 @@ func PostOrders(calculateLoyaltyUsecase usecase.CalculateLoyaltyPointsInputPort)
 	}
 }
 
-// PostGoods POST /api/goods — регистрация информации о новой механике вознаграждения за товар.
+// RegisterMechanicPostHandler POST /api/goods — регистрация информации о новой механике вознаграждения за товар.
 // 200 — вознаграждение успешно зарегистрировано;
 // 400 — неверный формат запроса;
 // 409 — ключ поиска уже зарегистрирован;
 // 500 — внутренняя ошибка сервера.
-func PostGoods(registerMechanicUsecase usecase.RegisterMechanicInputPort) http.HandlerFunc {
+func RegisterMechanicPostHandler(registerMechanicUsecase usecase.RegisterMechanicPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		actor := ""
 		input := usecase.RegisterMechanicInputDTO{}

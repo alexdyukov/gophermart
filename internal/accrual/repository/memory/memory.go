@@ -10,7 +10,7 @@ func NewAccrualStore() *AccrualStore {
 	return &AccrualStore{}
 }
 
-func (m *AccrualStore) SaveCalculationProcessData() error {
+func (m *AccrualStore) SavePurchasedOrder() error {
 	// work with db.
 	return nil
 }

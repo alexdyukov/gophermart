@@ -9,6 +9,7 @@ import (
 	"github.com/alexdyukov/gophermart/internal/gophermart/auth/gateway/token"
 	authHandler "github.com/alexdyukov/gophermart/internal/gophermart/auth/handler"
 	authPostgres "github.com/alexdyukov/gophermart/internal/gophermart/auth/repository/postgres"
+	"github.com/alexdyukov/gophermart/internal/gophermart/config"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/gateway/web"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler"
@@ -20,10 +21,19 @@ import (
 )
 
 func main() {
-	gophermartStore := postgres.NewGophermartStore()
-	dsn := "postgres://postgres:pgpwd4habr@localhost:5432" // move into config
 
-	conn, err := sql.Open("pgx", dsn)
+	// Configure application
+	gophermartConf := config.NewGophermartConfig()
+	dbConnString := gophermartConf.DBConnect
+	addr := gophermartConf.RunAddr
+
+	// sub service
+	accrualAddr := gophermartConf.AccSystemAddr
+	gatewayEndpoint := "/api/orders/"
+
+	gophermartStore := postgres.NewGophermartStore()
+
+	conn, err := sql.Open("pgx", dbConnString)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +51,7 @@ func main() {
 	appRouter.Post("/api/user/register", authHandler.PostRegister(authUsecase.NewRegisterUser(authStore, jwtGateway)))
 	appRouter.Post("/api/user/login", authHandler.PostLogin(authUsecase.NewLoginUser(authStore, jwtGateway)))
 
-	accrualGateway := web.NewAccrualGateway("127.0.0.1:8088", "/api/orders/") // to config
+	accrualGateway := web.NewAccrualGateway(accrualAddr, gatewayEndpoint) // to config
 
 	appRouter.Group(func(subRouter chi.Router) {
 		subRouter.Use(appMiddleware.Authentication(jwtGateway))
@@ -55,7 +65,7 @@ func main() {
 	})
 
 	server := http.Server{ // nolint:exhaustivestruct // ok, exhaustive // ok
-		Addr:    ":8089",
+		Addr:    addr, //":8089",
 		Handler: appRouter,
 	}
 

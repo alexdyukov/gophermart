@@ -1,17 +1,36 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
+	"github.com/alexdyukov/gophermart/internal/accrual/config"
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/accrual/handler"
-	"github.com/alexdyukov/gophermart/internal/accrual/repository/memory"
+	"github.com/alexdyukov/gophermart/internal/accrual/repository/postgres"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 func main() {
+
+	accrualConf := config.NewAccrualConfig()
+	addr := accrualConf.RunAddr
+
+	dsn := accrualConf.DBConnect
+	conn, err := sql.Open("pgx", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	accrualDB := postgres.NewAccrualDB(conn)
+
+	// Storage
+	// memRepo := memory.NewAccrualStore()
+
 	// Router
 	accrualRouter := chi.NewRouter()
 
@@ -19,19 +38,18 @@ func main() {
 	accrualRouter.Use(middleware.Recoverer)
 	// other middlewares
 
-	// Storage
-	memRepo := memory.NewAccrualStore()
-
 	// Handlers
-	accrualRouter.Get("/api/orders/{number}", handler.GetOrders(usecase.NewShowLoyaltyPoints(memRepo)))
-	accrualRouter.Post("/api/orders", handler.PostOrders(usecase.NewCalculateLoyaltyPoints(memRepo)))
-	accrualRouter.Post("/api/goods", handler.PostGoods(usecase.NewRegisterMechanic(memRepo)))
+	accrualRouter.Get("/api/orders/{number}", handler.OrderCalculationGetHandler(usecase.NewShowLoyaltyPoints(accrualDB)))
+
+	accrualRouter.Post("/api/orders", handler.RegisterOrderPostHandler(usecase.NewCalculateLoyaltyPoints(accrualDB)))
+
+	accrualRouter.Post("/api/goods", handler.RegisterMechanicPostHandler(usecase.NewRegisterMechanic(accrualDB)))
 
 	server := http.Server{
-		Addr:    ":8088",
+		Addr:    addr, //":8088",
 		Handler: accrualRouter,
 	}
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	log.Print(err)
 }

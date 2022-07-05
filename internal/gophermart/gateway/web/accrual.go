@@ -33,6 +33,7 @@ func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int) (*usecase.Re
 
 	response, err := ag.client.Get("http://" + ag.addr + ag.path + numStr)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err // nolint:wrapcheck // ok
 	}
 

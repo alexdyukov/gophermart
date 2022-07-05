@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	RegisterMechanicInputPort interface {
+	RegisterMechanicPrimaryPort interface {
 		Execute(string, *RegisterMechanicInputDTO) error
 	}
 
@@ -18,8 +18,6 @@ type (
 		typ     string
 		reward  int
 	}
-
-	RegisterMechanicOutputDTO struct{}
 
 	RegisterMechanic struct {
 		Repo RegisterMechanicRepository

@@ -1,31 +1,29 @@
 package usecase
 
 type (
-	CalculateLoyaltyPointsRepository interface {
-		SaveCalculationProcessData() error
+	RegisterPurchasedOrderRepository interface {
+		SavePurchasedOrder() error
 	}
 
-	CalculateLoyaltyPointsInputDTO struct {
+	RegisterPurchasedOrderInputDTO struct {
 		/* needed data */
 	}
 
-	CalculateLoyaltyPointsInputPort interface {
-		Execute(CalculateLoyaltyPointsInputDTO) error
+	RegisterPurchasedOrderPrimaryPort interface {
+		Execute(RegisterPurchasedOrderInputDTO) error
 	}
 
-	CalculateLoyaltyPoints struct {
-		repo CalculateLoyaltyPointsRepository
+	RegisterPurchasedOrder struct {
+		repo RegisterPurchasedOrderRepository
 	}
 )
 
-func NewCalculateLoyaltyPoints(repo CalculateLoyaltyPointsRepository) *CalculateLoyaltyPoints {
-	return &CalculateLoyaltyPoints{
+func NewCalculateLoyaltyPoints(repo RegisterPurchasedOrderRepository) *RegisterPurchasedOrder {
+	return &RegisterPurchasedOrder{
 		repo: repo,
 	}
 }
 
-func (c *CalculateLoyaltyPoints) Execute(CalculateLoyaltyPointsInputDTO) error {
-	// i.e. save to DB calculation data to calculate points
-	// in async approach
+func (c *RegisterPurchasedOrder) Execute(RegisterPurchasedOrderInputDTO) error {
 	return nil
 }
