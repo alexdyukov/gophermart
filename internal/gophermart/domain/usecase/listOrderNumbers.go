@@ -1,32 +1,46 @@
 package usecase
 
 import (
+	"log"
+	"time"
+
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type (
-	ListOrderNumsRepository interface {
+	ListUserOrdersRepository interface {
 		GetOrdersByUser(string) []core.OrderNumber
 	}
 
-	ListOrderNumsInputPort interface {
-		Execute(user *sharedkernel.User) ([]core.OrderNumber, error)
+	ListUserOrdersInputPort interface {
+		Execute(user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error)
 	}
 
-	ListOrderNums struct {
-		Repo ListOrderNumsRepository
+	ListUserOrdersOutputDTO struct {
+		UploadedAt time.Time `json:"uploaded_at"` // nolint:tagliatelle // ok
+		Number     string    `json:"number"`
+		Status     string    `json:"status"`
+		Accrual    int       `json:"accrual"`
+	}
+
+	ListUserOrders struct {
+		Repo ListUserOrdersRepository
 	}
 )
 
-func NewListOrderNums(repo ListOrderNumsRepository) *ListOrderNums {
-	return &ListOrderNums{
+func NewListOrderNums(repo ListUserOrdersRepository) *ListUserOrders {
+	return &ListUserOrders{
 		Repo: repo,
 	}
 }
 
-func (l *ListOrderNums) Execute(user *sharedkernel.User) ([]core.OrderNumber, error) {
+func (l *ListUserOrders) Execute(user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
 	orders := l.Repo.GetOrdersByUser(user.ID())
 
-	return orders, nil
+	log.Println(orders)
+
+	return []ListUserOrdersOutputDTO{
+		{},
+	}, nil
 }

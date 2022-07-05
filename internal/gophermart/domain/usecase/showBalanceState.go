@@ -10,26 +10,26 @@ type (
 		GetAccountByID(string) (core.Account, error)
 	}
 
-	ShowBalanceStateInputPort interface {
-		Execute(user *sharedkernel.User) (*ShowBalanceStateOutputDTO, error)
+	ShowUserBalanceInputPort interface {
+		Execute(user *sharedkernel.User) (*ShowUserBalanceOutputDTO, error)
 	}
 
-	// ShowBalanceStateOutputDTO is an example of output DTO at usecase level
+	// ShowUserBalanceOutputDTO is an example of output DTO at usecase level
 	// actually, could not be needed!
-	ShowBalanceStateOutputDTO struct{}
+	ShowUserBalanceOutputDTO struct{}
 
-	ShowBalanceState struct {
+	ShowUserBalance struct {
 		Repo ShowBalanceStateRepo
 	}
 )
 
-func NewShowBalanceState(repo ShowBalanceStateRepo) *ShowBalanceState {
-	return &ShowBalanceState{
+func NewShowBalanceState(repo ShowBalanceStateRepo) *ShowUserBalance {
+	return &ShowUserBalance{
 		Repo: repo,
 	}
 }
 
-func (s *ShowBalanceState) Execute(user *sharedkernel.User) (*ShowBalanceStateOutputDTO, error) {
+func (s *ShowUserBalance) Execute(user *sharedkernel.User) (*ShowUserBalanceOutputDTO, error) {
 	_, err := s.Repo.GetAccountByID(user.ID())
 	if err != nil {
 		return nil, err // nolint:wrapcheck // ok
@@ -37,5 +37,5 @@ func (s *ShowBalanceState) Execute(user *sharedkernel.User) (*ShowBalanceStateOu
 
 	core.NewAccount(user.ID())
 
-	return &ShowBalanceStateOutputDTO{}, nil
+	return &ShowUserBalanceOutputDTO{}, nil
 }

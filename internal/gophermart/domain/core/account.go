@@ -20,7 +20,7 @@ type (
 		id              string
 		user            string
 		withdrawHistory []withdraw
-		points          int
+		balance         int
 	}
 )
 
@@ -33,15 +33,26 @@ func NewAccount(userID string) *Account {
 	}
 }
 
-func (acc *Account) CurrentPoints() int {
-	return acc.points
+func RestoreAccount(id, userID string, balance int) *Account {
+	return &Account{
+		id:              id,
+		user:            userID,
+		withdrawHistory: nil,
+		balance:         balance,
+	}
 }
 
-func (acc *Account) AddPoints() {}
+func (acc *Account) ShowBalance() int {
+	return acc.balance
+}
+
+func (acc *Account) Add(amount int) {
+	acc.balance += amount
+}
 
 // WithdrawPoints is just a representation of core model functionality (an example of core model behavior).
 func (acc *Account) WithdrawPoints(order, amount int) error {
-	if amount > acc.points {
+	if amount > acc.balance {
 		return ErrNotEnoughFunds
 	}
 
@@ -51,7 +62,7 @@ func (acc *Account) WithdrawPoints(order, amount int) error {
 		time:        time.Now().Unix(),
 	}
 
-	acc.points = -amount
+	acc.balance = -amount
 	acc.withdrawHistory = append(acc.withdrawHistory, with)
 
 	return nil

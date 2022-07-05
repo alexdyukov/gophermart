@@ -2,8 +2,8 @@ package core
 
 type (
 	Product struct {
-		// description string
-		// price       string
+		description string
+		price       int
 	}
 
 	OrderReceipt struct {

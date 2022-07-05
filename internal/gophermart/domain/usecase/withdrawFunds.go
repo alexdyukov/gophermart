@@ -6,33 +6,33 @@ import (
 )
 
 type (
-	WithdrawFundsRepository interface {
+	WithdrawUserFundsRepository interface {
 		GetAccountByID(string) (core.Account, error)
 		SaveAccount(core.Account) error
 	}
 
 	WithdrawFundsInputPort interface {
-		Execute(*sharedkernel.User, WithdrawFundsInputDTO) error
+		Execute(*sharedkernel.User, WithdrawUserFundsInputDTO) error
 	}
 
-	// WithdrawFundsInputDTO Example of DTO with json at usecase level, which not quite correct.
-	WithdrawFundsInputDTO struct {
+	// WithdrawUserFundsInputDTO Example of DTO with json at usecase level, which not quite correct.
+	WithdrawUserFundsInputDTO struct {
 		Order int `json:"order"`
 		Sum   int `json:"sum"`
 	}
 
-	WithdrawFunds struct {
-		Repo WithdrawFundsRepository
+	WithdrawUserFunds struct {
+		Repo WithdrawUserFundsRepository
 	}
 )
 
-func NewWithdrawFunds(repo WithdrawFundsRepository) *WithdrawFunds {
-	return &WithdrawFunds{
+func NewWithdrawUserFunds(repo WithdrawUserFundsRepository) *WithdrawUserFunds {
+	return &WithdrawUserFunds{
 		Repo: repo,
 	}
 }
 
-func (w *WithdrawFunds) Execute(user *sharedkernel.User, _ WithdrawFundsInputDTO) error {
+func (w *WithdrawUserFunds) Execute(user *sharedkernel.User, _ WithdrawUserFundsInputDTO) error {
 	_, err := w.Repo.GetAccountByID(user.ID())
 	if err != nil {
 		return err // nolint:wrapcheck // ok
@@ -40,7 +40,7 @@ func (w *WithdrawFunds) Execute(user *sharedkernel.User, _ WithdrawFundsInputDTO
 
 	// do work with account
 	// _ = account.WithdrawPoints(dto.Order, dto.Sum)
-	// _ = w.Repo.SaveAccount(account)
+	// _ = w.Repository.SaveAccount(account)
 
 	return nil
 }

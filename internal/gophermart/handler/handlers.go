@@ -5,13 +5,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
-// PostOrder POST /api/user/orders — загрузка пользователем номера заказа для расчёта.
+// PostRegisterOrder POST /api/user/orders — загрузка пользователем номера заказа для расчёта.
 // 200 — номер заказа уже был загружен этим пользователем;
 // 202 — новый номер заказа принят в обработку;
 // 400 — неверный формат запроса;
@@ -19,7 +20,7 @@ import (
 // 409 — номер заказа уже был загружен другим пользователем;
 // 422 — неверный формат номера заказа;
 // 500 — внутренняя ошибка сервера.
-func PostOrder(loadOrderUsecase usecase.LoadOrderNumberInputPort) http.HandlerFunc {
+func PostRegisterOrder(registerOrderUsecase usecase.RegisterOrderPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
@@ -28,11 +29,23 @@ func PostOrder(loadOrderUsecase usecase.LoadOrderNumberInputPort) http.HandlerFu
 			return
 		}
 
-		log.Println(user)
+		bytes, err := io.ReadAll(request.Body)
+		if err != nil {
+			log.Printf("error while reading request.")
+			writer.WriteHeader(http.StatusBadRequest)
 
-		orderNum := 0
+			return
+		}
 
-		err := loadOrderUsecase.Execute(orderNum)
+		orderNumber, err := strconv.Atoi(string(bytes))
+		if err != nil {
+			log.Printf("error while reading request.")
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		err = registerOrderUsecase.Execute(orderNumber, user)
 		if err != nil {
 			log.Println(err)
 		}
@@ -47,7 +60,7 @@ func PostOrder(loadOrderUsecase usecase.LoadOrderNumberInputPort) http.HandlerFu
 // 204 — нет данных для ответа.
 // 401 — пользователь не авторизован.
 // 500 — внутренняя ошибка сервера.
-func GetOrders(listOrderUsecase usecase.ListOrderNumsInputPort) http.HandlerFunc {
+func GetOrders(listOrdersUsecase usecase.ListUserOrdersInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
@@ -56,7 +69,7 @@ func GetOrders(listOrderUsecase usecase.ListOrderNumsInputPort) http.HandlerFunc
 			return
 		}
 
-		_, err := listOrderUsecase.Execute(user)
+		_, err := listOrdersUsecase.Execute(user)
 		if err != nil {
 			log.Println(err)
 
@@ -71,7 +84,7 @@ func GetOrders(listOrderUsecase usecase.ListOrderNumsInputPort) http.HandlerFunc
 // 200 — успешная обработка запроса.
 // 401 — пользователь не авторизован.
 // 500 — внутренняя ошибка сервера.
-func GetBalance(showBalanceUsecase usecase.ShowBalanceStateInputPort) http.HandlerFunc {
+func GetBalance(showBalanceUsecase usecase.ShowUserBalanceInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
@@ -107,7 +120,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 			return
 		}
 
-		dto := usecase.WithdrawFundsInputDTO{} // nolint:exhaustivestruct // ok,  exhaustive // ok.
+		dto := usecase.WithdrawUserFundsInputDTO{} // nolint:exhaustivestruct // ok,  exhaustive // ok.
 
 		bytes, err := io.ReadAll(request.Body)
 		if err != nil {
@@ -135,7 +148,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 // 204 — нет ни одного списания.
 // 401 — пользователь не авторизован.
 // 500 — внутренняя ошибка сервера.
-func GetWithdrawals(listWithdrawalsUsecase usecase.ListWithdrawalsInputPort) http.HandlerFunc {
+func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
