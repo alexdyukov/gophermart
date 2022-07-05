@@ -34,7 +34,7 @@ func main() {
 	gophermartRouter.Get("/api/user/orders", handler.GetOrders(usecase.NewListOrderNums(gophermartStore)))
 	gophermartRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowBalanceState(gophermartStore)))
 	gophermartRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawFunds(gophermartStore)))
-	gophermartRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(usecase.NewListWithdrawals(gophermartStore)))
+	gophermartRouter.Get("/api/user/withdrawals", handler.GetWithdrawals(usecase.NewListWithdrawals(gophermartStore))) // BeOl - видать это ошибка
 
 	server := http.Server{
 		Addr:    appConf.RunAddr,

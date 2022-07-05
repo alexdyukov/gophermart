@@ -104,7 +104,7 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 	}
 }
 
-// GetWithdrawals GET /api/user/balance/withdrawals — получение информации о выводе средств с накопительного счёта пользователем.
+// GetWithdrawals GET /api/user/withdrawals — получение информации о выводе средств с накопительного счёта пользователем. // убрала balance
 func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user := "some user"

@@ -62,10 +62,10 @@ func (p *GophermartStore) GetBalance(_ context.Context, user string) (float32, f
 
 	mOrderTest := make(map[int]OrderModel)
 
-	av1 := OrderModel{Number: "number1", UserID: "1", Status: sharedkernel.PROCESSED, Sum: 500, Date: time.Now()}
+	av1 := OrderModel{Number: "number1", UserID: "1", Status: sharedkernel.PROCESSED, Sum: 623.5048, Date: time.Now()}
 	mOrderTest[1] = av1
 	av2 := OrderModel{Number: "number2", UserID: "1", Status: sharedkernel.NEW, Date: time.Now()}
-	av3 := OrderModel{Number: "number3", UserID: "1", Status: sharedkernel.PROCESSED, Sum: 300, Date: time.Now()}
+	av3 := OrderModel{Number: "number3", UserID: "1", Status: sharedkernel.PROCESSED, Sum: 106.47517, Date: time.Now()}
 	mOrderTest[2] = av2
 	mOrderTest[3] = av3
 
