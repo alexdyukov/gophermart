@@ -119,7 +119,7 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user := "some user"
-		fmt.Println("GetWithdrawals: запустился хендлер  /api/user/withdrawals")
+		fmt.Println("GetWithdrawals_check_withdrawals: запустился хендлер  /api/user/withdrawals")
 		wdrls, err := uc.Execute(request.Context(), user)
 
 		if err != nil {
@@ -156,7 +156,7 @@ func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 					writer.WriteHeader(500)
 					return
 				}
-				fmt.Println("GetWithdrawals: все зашибись, отправили статус 200 и JSON ", strJSON)
+				fmt.Println("GetWithdrawals: все зашибись, отправили статус 200 и JSON ", string(strJSON))
 			}
 		}
 
