@@ -49,8 +49,13 @@ func (p *GophermartStore) GetOrdersByUser(_ context.Context, user string) ([]cor
 }
 
 func (p *GophermartStore) GetAccountByID(_ context.Context, id string) (core.Account, error) {
+	acc := core.NewAccount(id)
 
-	return core.Account{}, nil
+	acc.Points = 800
+	acc.WithdrawPoints(212324124, 500)
+	acc.WithdrawPoints(212324125, 300)
+
+	return acc, nil
 }
 
 func (p *GophermartStore) GetBalance(_ context.Context, user string) (float32, float32, error) {

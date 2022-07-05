@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -105,6 +106,7 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user := "some user"
+		fmt.Println("попали куда нужно /api/user/balance/withdrawals")
 		wdrls, err := uc.Execute(request.Context(), user)
 		if err != nil {
 			//401 — пользователь не авторизован.

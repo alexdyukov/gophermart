@@ -41,7 +41,7 @@ func (a *Account) WithdrawPoints(order int, amount int) error {
 		Amount:      amount,
 		Time:        time.Now(),
 	}
-	a.Points = -amount
+	a.Points -= amount //  тут меняла потому что так кажется логичным. Но вообще не обязательно, надо разбираться
 	a.WithdrawHistory = append(a.WithdrawHistory, w)
 	return nil
 }
