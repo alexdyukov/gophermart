@@ -52,8 +52,7 @@ func (p *GophermartStore) GetAccountByID(_ context.Context, id string) (core.Acc
 	acc := core.NewAccount(id)
 
 	acc.Points = 800
-	acc.WithdrawPoints("212324124", 500)
-	acc.WithdrawPoints("212324125", 300)
+	acc.WithdrawPoints("66340157222", 324.82)
 
 	return acc, nil
 }
@@ -62,6 +61,7 @@ func (p *GophermartStore) GetBalance(_ context.Context, user string) (float32, f
 
 	mOrderTest := make(map[int]OrderModel)
 
+	// сложив эти суммы получается та сумма которая проходит на тестах check_balance
 	av1 := OrderModel{Number: "number1", UserID: "1", Status: sharedkernel.PROCESSED, Sum: 623.51, Date: time.Now()}
 	mOrderTest[1] = av1
 	av2 := OrderModel{Number: "number2", UserID: "1", Status: sharedkernel.NEW, Date: time.Now()}

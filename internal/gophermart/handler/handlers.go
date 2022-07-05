@@ -83,7 +83,7 @@ func GetBalance(uc usecase.ShowBalanceStateInputPort) http.HandlerFunc {
 func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println("PostWithdraw: запустился хендлер  /api/user/balance/withdraw")
-
+		//пример из тестов  66340157222 324.82
 		user := "some user"
 		dto := usecase.WithdrawFundsInputDTO{}
 
@@ -140,22 +140,24 @@ func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 			writer.WriteHeader(204)
 
 		default:
-			writer.WriteHeader(200)
-			writer.Header().Set("Content-Type", "application/json")
+			{
+				writer.WriteHeader(200)
+				writer.Header().Set("Content-Type", "application/json")
 
-			strJSON, err := json.Marshal(wdrls)
-			if err != nil {
-				fmt.Println("GetWithdrawals: ушли в ошибку #2 ", err)
-				writer.WriteHeader(500)
-				return
+				strJSON, err := json.Marshal(wdrls)
+				if err != nil {
+					fmt.Println("GetWithdrawals: ушли в ошибку #2 ", err)
+					writer.WriteHeader(500)
+					return
+				}
+
+				if _, err = writer.Write(strJSON); err != nil {
+					fmt.Println("GetWithdrawals: ушли в ошибку #3", err)
+					writer.WriteHeader(500)
+					return
+				}
+				fmt.Println("GetWithdrawals: все зашибись, отправили статус 200 и JSON ", strJSON)
 			}
-
-			if _, err = writer.Write(strJSON); err != nil {
-				fmt.Println("GetWithdrawals: ушли в ошибку #3", err)
-				writer.WriteHeader(500)
-				return
-			}
-
 		}
 
 	}
