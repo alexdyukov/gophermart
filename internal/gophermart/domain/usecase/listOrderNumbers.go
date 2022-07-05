@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"sort"
 	"time"
 )
 
@@ -31,7 +32,8 @@ type ListOrderNumsDTO struct {
 	Number  string    `json:"number"`
 	Status  string    `json:"status"`
 	Accrual float32   `json:"accrual,omitempty"`
-	Data    time.Time `json:"uploaded_at"`
+	Data    time.Time `json:"_"`
+	DataStr string    `json:"uploaded_at"`
 }
 
 func (l *ListOrderNums) Execute(ctx context.Context, user string) ([]ListOrderNumsDTO, error) {
@@ -45,7 +47,12 @@ func (l *ListOrderNums) Execute(ctx context.Context, user string) ([]ListOrderNu
 	lstOrdNumsDTO := make([]ListOrderNumsDTO, 0)
 
 	for _, order := range orders {
-		lstOrdNumsDTO = append(lstOrdNumsDTO, ListOrderNumsDTO{Number: order.Number, Status: order.Status.String(), Accrual: order.Accrual, Data: order.Data})
+		lstOrdNumsDTO = append(lstOrdNumsDTO, ListOrderNumsDTO{Number: order.Number, Status: order.Status.String(), Accrual: order.Accrual, Data: order.Data, DataStr: order.Data.Format(time.RFC3339)})
 	}
+
+	sort.Slice(&lstOrdNumsDTO, func(i, j int) bool {
+		return lstOrdNumsDTO[i].Data.Before(lstOrdNumsDTO[j].Data)
+	})
+
 	return lstOrdNumsDTO, nil
 }
