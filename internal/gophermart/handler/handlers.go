@@ -44,8 +44,9 @@ func GetOrders(uc usecase.ListOrderNumsInputPort) http.HandlerFunc {
 		}
 
 		//200 — успешная обработка запроса.
-		writer.WriteHeader(200)
+
 		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(200)
 		strJSON, err := json.Marshal(list)
 
 		_, err = writer.Write(strJSON)
@@ -68,8 +69,9 @@ func GetBalance(uc usecase.ShowBalanceStateInputPort) http.HandlerFunc {
 		}
 
 		//200 — успешная обработка запроса.
-		writer.WriteHeader(200)
+
 		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(200)
 		strJSON, err := json.Marshal(balance)
 		_, err = writer.Write(strJSON)
 
@@ -123,8 +125,9 @@ func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 
 		default:
 			{
-				writer.WriteHeader(200)
+
 				writer.Header().Set("Content-Type", "application/json")
+				writer.WriteHeader(200)
 				strJSON, err := json.Marshal(wdrls)
 				if err != nil {
 					//500 — внутренняя ошибка сервера.
