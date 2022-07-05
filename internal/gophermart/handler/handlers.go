@@ -97,10 +97,12 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 
 			err := uc.Execute(request.Context(), user, dto)
 			if err != nil {
+				fmt.Println("PostWithdraw: ошибка №1", err)
 				writer.WriteHeader(500)
 				return
 			}
 		} else {
+			fmt.Println("PostWithdraw: неверный номер заказа - не отработал алгоритм луна")
 			writer.WriteHeader(422)
 		}
 		//200 — успешная обработка запроса;
@@ -108,6 +110,7 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 		//402 — на счету недостаточно средств;
 		//422 — неверный номер заказа;
 		//500 — внутренняя ошибка сервера.
+		fmt.Println("PostWithdraw: все зашибись, отправляем статус 200")
 		writer.WriteHeader(200)
 	}
 }
