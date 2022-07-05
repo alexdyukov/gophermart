@@ -85,13 +85,12 @@ func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrde
 // 400 — неверный формат запроса;
 // 409 — ключ поиска уже зарегистрирован;
 // 500 — внутренняя ошибка сервера.
-func RegisterMechanicPostHandler(
-	registerRewardMechanicUsecase usecase.RegisterRewardMechanicPrimaryPort) http.HandlerFunc {
+func RegisterMechanicPostHandler(registerRewardUsecase usecase.RegisterRewardMechanicPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		actor := ""
 		input := usecase.RegisterRewardMechanicInputDTO{}
 
-		err := registerRewardMechanicUsecase.Execute(actor, &input)
+		err := registerRewardUsecase.Execute(actor, &input)
 		if err != nil {
 			log.Println(err)
 

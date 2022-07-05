@@ -11,7 +11,6 @@ import (
 	"github.com/alexdyukov/gophermart/internal/accrual/repository/postgres"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
