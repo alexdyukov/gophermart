@@ -19,8 +19,8 @@ type WithdrawFundsInputPort interface {
 
 // WithdrawFundsInputDTO Example of DTO with json at usecase level not quite correct
 type WithdrawFundsInputDTO struct {
-	Order int `json:"order"`
-	Sum   int `json:"sum"`
+	Order string  `json:"order"`
+	Sum   float32 `json:"sum"`
 }
 
 type WithdrawFunds struct {

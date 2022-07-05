@@ -19,8 +19,8 @@ type ListWithdrawalsInputPort interface {
 }
 
 type ListWithdrawalsOutputDTO struct {
-	Order          int       `json:"order"`
-	Sum            int       `json:"sum"`
+	Order          string    `json:"order"`
+	Sum            float32   `json:"sum"`
 	ProcessedAt    time.Time `json:"-"`
 	ProcessedAtStr string    `json:"processed_at"`
 }

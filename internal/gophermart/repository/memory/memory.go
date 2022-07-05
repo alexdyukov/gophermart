@@ -52,8 +52,8 @@ func (p *GophermartStore) GetAccountByID(_ context.Context, id string) (core.Acc
 	acc := core.NewAccount(id)
 
 	acc.Points = 800
-	acc.WithdrawPoints(212324124, 500)
-	acc.WithdrawPoints(212324125, 300)
+	acc.WithdrawPoints("212324124", 500)
+	acc.WithdrawPoints("212324125", 300)
 
 	return acc, nil
 }

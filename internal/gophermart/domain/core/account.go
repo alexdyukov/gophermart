@@ -8,15 +8,15 @@ import (
 // Делала BeOl
 
 type withdraw struct {
-	OrderNumber int
-	Amount      int
+	OrderNumber string
+	Amount      float32
 	Time        time.Time
 }
 
 type Account struct {
 	Id              string
 	User            string //owner
-	Points          int
+	Points          float32
 	WithdrawHistory []withdraw
 }
 
@@ -26,13 +26,13 @@ func NewAccount(user string) Account {
 	}
 }
 
-func (a *Account) CurrentPoints() int {
+func (a *Account) CurrentPoints() float32 {
 	return a.Points
 }
 
 func (a *Account) AddPoints() { /* calculations.. */ }
 
-func (a *Account) WithdrawPoints(order int, amount int) error {
+func (a *Account) WithdrawPoints(order string, amount float32) error {
 	if amount > a.Points {
 		return errors.New("not enough funds")
 	}

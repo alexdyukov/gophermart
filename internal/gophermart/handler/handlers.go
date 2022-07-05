@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"io"
 	"net/http"
 
@@ -81,6 +82,7 @@ func GetBalance(uc usecase.ShowBalanceStateInputPort) http.HandlerFunc {
 // PostWithdraw POST /api/user/balance/withdraw — запрос на списание баллов с накопительного счёта в счёт оплаты нового заказа;
 func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println("PostWithdraw: запустился хендлер  /api/user/balance/withdraw")
 
 		user := "some user"
 		dto := usecase.WithdrawFundsInputDTO{}
@@ -89,11 +91,17 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 		bytes, _ := io.ReadAll(request.Body)
 		_ = json.Unmarshal(bytes, &dto)
 
-		err := uc.Execute(request.Context(), user, dto)
-		if err != nil {
-			// todo: log
-			// todo: prepare response
-			return
+		fmt.Println("PostWithdraw: получили запрос на списание, такие данные", dto)
+
+		if sharedkernel.ValidLuhn(dto.Order) {
+
+			err := uc.Execute(request.Context(), user, dto)
+			if err != nil {
+				writer.WriteHeader(500)
+				return
+			}
+		} else {
+			writer.WriteHeader(422)
 		}
 		//200 — успешная обработка запроса;
 		//401 — пользователь не авторизован;
@@ -108,19 +116,24 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user := "some user"
-		fmt.Println("попали куда нужно /api/user/balance/withdrawals")
+		fmt.Println("GetWithdrawals: запустился хендлер  /api/user/withdrawals")
 		wdrls, err := uc.Execute(request.Context(), user)
+
 		if err != nil {
+			fmt.Println("GetWithdrawals: ушли в ошибку #1 ", err)
+			writer.WriteHeader(500)
 			//401 — пользователь не авторизован.
 			//500 — внутренняя ошибка сервера.
 			return
 		}
+		fmt.Println("GetWithdrawals: получили данные", wdrls)
 		//200 — успешная обработка запроса;
 		//204 — нет ни одного списания.
 		//200 — успешная обработка запроса.
 
 		switch len(wdrls) {
 		case 0: // отправляем ответ что нет ни одного списания
+			fmt.Println("GetWithdrawals: не нашли ни одного списания", err)
 			writer.WriteHeader(204)
 
 		default:
@@ -129,12 +142,13 @@ func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 
 			strJSON, err := json.Marshal(wdrls)
 			if err != nil {
+				fmt.Println("GetWithdrawals: ушли в ошибку #2 ", err)
 				writer.WriteHeader(500)
 				return
 			}
 
 			if _, err = writer.Write(strJSON); err != nil {
-
+				fmt.Println("GetWithdrawals: ушли в ошибку #3", err)
 				writer.WriteHeader(500)
 				return
 			}
