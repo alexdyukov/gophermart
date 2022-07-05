@@ -105,16 +105,32 @@ func PostWithdraw(uc usecase.WithdrawFundsInputPort) http.HandlerFunc {
 func GetWithdrawals(uc usecase.ListWithdrawalsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user := "some user"
-		_, err := uc.Execute(request.Context(), user)
+		wdrls, err := uc.Execute(request.Context(), user)
 		if err != nil {
-			// todo: log
-			// todo: prepare response
+			//401 — пользователь не авторизован.
+			//500 — внутренняя ошибка сервера.
 			return
 		}
 		//200 — успешная обработка запроса;
 		//204 — нет ни одного списания.
-		//401 — пользователь не авторизован.
-		//500 — внутренняя ошибка сервера.
-		writer.WriteHeader(200)
+		//200 — успешная обработка запроса.
+
+		switch len(wdrls) {
+		case 0: // отправляем ответ что нет ни одного списания
+			writer.WriteHeader(204)
+
+		default:
+			{
+				writer.WriteHeader(200)
+				writer.Header().Set("Content-Type", "application/json")
+				strJSON, err := json.Marshal(wdrls)
+				if err != nil {
+					//500 — внутренняя ошибка сервера.
+					return
+				}
+				_, err = writer.Write(strJSON)
+			}
+		}
+
 	}
 }

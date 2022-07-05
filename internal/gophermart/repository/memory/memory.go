@@ -49,9 +49,7 @@ func (p *GophermartStore) GetOrdersByUser(_ context.Context, user string) ([]cor
 }
 
 func (p *GophermartStore) GetAccountByID(_ context.Context, id string) (core.Account, error) {
-	// по имени пользователя получаем сумму накопленных балов
 
-	// work with db
 	return core.Account{}, nil
 }
 

@@ -8,6 +8,7 @@ import (
 )
 
 // Делала BeOl
+////1- GetOrders GET /api/user/orders — получение списка загруженных пользователем номеров заказов, статусов их обработки и информации о начислениях;
 type ListOrderNumsRepository interface {
 	GetOrdersByUser(context.Context, string) ([]core.OrderNumber, error)
 }

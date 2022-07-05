@@ -5,6 +5,9 @@ import (
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 )
 
+// Делала BeOl только добавляла контекст везде
+// POST /api/user/balance/withdraw
+
 type WithdrawFundsRepository interface {
 	GetAccountByID(context.Context, string) (core.Account, error)
 	SaveAccount(core.Account) error

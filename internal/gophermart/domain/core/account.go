@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+// Делала BeOl
+
 type withdraw struct {
 	OrderNumber int
 	Amount      int
-	time        int64
+	Time        time.Time
 }
 
 type Account struct {
@@ -37,7 +39,7 @@ func (a *Account) WithdrawPoints(order int, amount int) error {
 	w := withdraw{
 		OrderNumber: order,
 		Amount:      amount,
-		time:        time.Now().Unix(),
+		Time:        time.Now(),
 	}
 	a.Points = -amount
 	a.WithdrawHistory = append(a.WithdrawHistory, w)

@@ -5,6 +5,7 @@ import (
 )
 
 // Делала BeOl
+//2- GET /api/user/balance
 type ShowBalanceStateRepo interface {
 	GetBalance(context.Context, string) (float32, float32, error)
 }
@@ -33,7 +34,7 @@ func (s *ShowBalanceState) Execute(ctx context.Context, id string) (ShowBalanceS
 	currentAll, withdrawals, err := s.Repo.GetBalance(ctx, id)
 
 	if err != nil {
-		// process error
+		return ShowBalanceStateOutputDTO{}, err
 	}
 	// construct output
 	return ShowBalanceStateOutputDTO{Current: currentAll - withdrawals, Withdrawn: withdrawals}, nil
