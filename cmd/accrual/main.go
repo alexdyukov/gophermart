@@ -16,20 +16,17 @@ import (
 )
 
 func main() {
-
 	accrualConf := config.NewAccrualConfig()
 	addr := accrualConf.RunAddr
 
 	dsn := accrualConf.DBConnect
+
 	conn, err := sql.Open("pgx", dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	accrualDB := postgres.NewAccrualDB(conn)
-
-	// Storage
-	// memRepo := memory.NewAccrualStore()
 
 	// Router
 	accrualRouter := chi.NewRouter()
@@ -39,14 +36,15 @@ func main() {
 	// other middlewares
 
 	// Handlers
-	accrualRouter.Get("/api/orders/{number}", handler.OrderCalculationGetHandler(usecase.NewShowLoyaltyPoints(accrualDB)))
+	accrualRouter.Get("/api/orders/{number}", handler.OrderCalculationGetHandler(
+		usecase.NewShowOrderCalculation(accrualDB)))
 
-	accrualRouter.Post("/api/orders", handler.RegisterOrderPostHandler(usecase.NewCalculateLoyaltyPoints(accrualDB)))
+	accrualRouter.Post("/api/orders", handler.RegisterOrderPostHandler(usecase.NewRegisterOrderReceipt(accrualDB)))
 
-	accrualRouter.Post("/api/goods", handler.RegisterMechanicPostHandler(usecase.NewRegisterMechanic(accrualDB)))
+	accrualRouter.Post("/api/goods", handler.RegisterMechanicPostHandler(usecase.NewRegisterRewardMechanic(accrualDB)))
 
 	server := http.Server{
-		Addr:    addr, //":8088",
+		Addr:    addr, // ":8088",
 		Handler: accrualRouter,
 	}
 

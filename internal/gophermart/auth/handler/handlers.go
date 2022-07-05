@@ -15,7 +15,6 @@ import (
 // 400 — неверный формат запроса;
 // 401 — неверная пара логин/пароль;
 // 500 — внутренняя ошибка сервера.
-// nolint:funlen // not complex.
 func PostLogin(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		bytes, err := io.ReadAll(request.Body)
@@ -66,7 +65,6 @@ func PostLogin(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
 // 400 — неверный формат запроса;
 // 409 — логин уже занят;
 // 500 — внутренняя ошибка сервера.
-// nolint:funlen // not complex
 func PostRegister(registerUsecase usecase.RegisterUserPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		bytes, err := io.ReadAll(request.Body)
@@ -101,7 +99,7 @@ func PostRegister(registerUsecase usecase.RegisterUserPrimaryPort) http.HandlerF
 			return
 		}
 
-		c := http.Cookie{ // nolint:exhaustivestruct, exhaustive  // ok
+		c := http.Cookie{
 			Name:   "auth",
 			Value:  jwtString,
 			MaxAge: 3600 * 24, // nolint:gomnd // temporary until config

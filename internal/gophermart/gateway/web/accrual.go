@@ -2,38 +2,40 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 )
 
-// AccrualGateway is struct represents external api which for this service act like DataProvider
-// and utilize ServiceGateway pattern. It is here as a temporary mock in case we need to go to Accrual from Gophermart.
+// AccrualGateway is struct represents external api which for this service act like secondary adapter
+// and utilize Gateway pattern.
 type AccrualGateway struct {
 	client http.Client
 	addr   string
 	path   string
+	proto  string
 }
 
 func NewAccrualGateway(addr, path string) *AccrualGateway {
 	return &AccrualGateway{ // nolint:exhaustivestruct // ok
-		addr: addr,
-		path: path,
+		addr:  addr,
+		path:  path,
+		proto: "http://",
 	}
 }
 
-func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int) (*usecase.RegisterOrderCalculationStateDTO, error) {
-
+func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int) (*usecase.CalculationStateDTO, error) {
 	numStr := strconv.Itoa(orderNumber)
 
-	fmt.Println(ag.addr + ag.path + numStr)
+	log.Println(ag.addr + ag.path + numStr)
 
-	response, err := ag.client.Get("http://" + ag.addr + ag.path + numStr)
+	response, err := ag.client.Get(ag.proto + ag.addr + ag.path + numStr)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
+
 		return nil, err // nolint:wrapcheck // ok
 	}
 
@@ -42,7 +44,7 @@ func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int) (*usecase.Re
 		return nil, err // nolint:wrapcheck // ok
 	}
 
-	dto := usecase.RegisterOrderCalculationStateDTO{} // nolint:exhaustivestruct // ok
+	dto := usecase.CalculationStateDTO{} // nolint:exhaustivestruct // ok
 
 	err = json.Unmarshal(bytes, &dto)
 	if err != nil {

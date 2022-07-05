@@ -7,7 +7,7 @@ import (
 
 type (
 	WithdrawUserFundsRepository interface {
-		GetAccountByID(string) (core.Account, error)
+		FindAccountByID(string) (core.Account, error)
 		SaveAccount(core.Account) error
 	}
 
@@ -33,7 +33,7 @@ func NewWithdrawUserFunds(repo WithdrawUserFundsRepository) *WithdrawUserFunds {
 }
 
 func (w *WithdrawUserFunds) Execute(user *sharedkernel.User, _ WithdrawUserFundsInputDTO) error {
-	_, err := w.Repo.GetAccountByID(user.ID())
+	_, err := w.Repo.FindAccountByID(user.ID())
 	if err != nil {
 		return err // nolint:wrapcheck // ok
 	}

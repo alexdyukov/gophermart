@@ -6,7 +6,7 @@ import "github.com/google/uuid"
 func NewUUID() string {
 	uid, err := uuid.NewRandom()
 	if err != nil {
-		panic(err)
+		panic(err) // do not panic, handle in another way
 	}
 
 	return uid.String()

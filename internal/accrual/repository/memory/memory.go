@@ -10,17 +10,17 @@ func NewAccrualStore() *AccrualStore {
 	return &AccrualStore{}
 }
 
-func (m *AccrualStore) SavePurchasedOrder() error {
+func (m *AccrualStore) SaveOrderReceipt() error {
 	// work with db.
 	return nil
 }
 
-func (m *AccrualStore) SaveMechanic(_ *core.RewardMechanic) error {
+func (m *AccrualStore) SaveRewardMechanic(_ *core.Reward) error {
 	// work with db.
 	return nil
 }
 
-func (m *AccrualStore) GetLoyaltyPointsByOrderNumber(_ int) error {
+func (m *AccrualStore) GetOrderByNumber(_ int) error {
 	// work with db.
 	return nil
 }

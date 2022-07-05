@@ -7,33 +7,34 @@ import (
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
-// Pay attention this is the first iteration (a sort of Draft)
-// of the core structure, so no warranty it is correct or will not change.
 type (
-	withdraw struct {
-		OrderNumber int
-		Amount      int
-		time        int64
+	AccountWithdrawals struct {
+		ID            string
+		OrderNumber   int
+		Amount        sharedkernel.Money
+		OperationTime int64
 	}
 
 	Account struct {
 		id              string
 		user            string
-		withdrawHistory []withdraw
-		balance         int
+		withdrawHistory []AccountWithdrawals
+		balance         sharedkernel.Money
 	}
 )
 
-var ErrNotEnoughFunds = errors.New("account do not have enough funds")
+var ErrNotEnoughFunds = errors.New("unfortunately, your account do not have enough funds")
 
 func NewAccount(userID string) *Account {
-	return &Account{ // nolint:exhaustivestruct // ok.
-		id:   sharedkernel.NewUUID(),
-		user: userID,
+	return &Account{
+		id:              sharedkernel.NewUUID(),
+		user:            userID,
+		withdrawHistory: nil,
+		balance:         0,
 	}
 }
 
-func RestoreAccount(id, userID string, balance int) *Account {
+func RestoreAccount(id, userID string, balance sharedkernel.Money) *Account {
 	return &Account{
 		id:              id,
 		user:            userID,
@@ -42,24 +43,29 @@ func RestoreAccount(id, userID string, balance int) *Account {
 	}
 }
 
-func (acc *Account) ShowBalance() int {
+func (acc *Account) CurrentBalance() sharedkernel.Money {
 	return acc.balance
 }
 
-func (acc *Account) Add(amount int) {
+func (acc *Account) WithdrawalsSum() sharedkernel.Money {
+	// return cached sum or calculate on fly
+	return 0
+}
+
+func (acc *Account) Add(amount sharedkernel.Money) {
 	acc.balance += amount
 }
 
-// WithdrawPoints is just a representation of core model functionality (an example of core model behavior).
-func (acc *Account) WithdrawPoints(order, amount int) error {
+// WithdrawPoints is just a representation of core model functionality behavior.
+func (acc *Account) WithdrawPoints(order int, amount sharedkernel.Money) error {
 	if amount > acc.balance {
 		return ErrNotEnoughFunds
 	}
 
-	with := withdraw{
-		OrderNumber: order,
-		Amount:      amount,
-		time:        time.Now().Unix(),
+	with := AccountWithdrawals{
+		OrderNumber:   order,
+		Amount:        amount,
+		OperationTime: time.Now().Unix(),
 	}
 
 	acc.balance = -amount

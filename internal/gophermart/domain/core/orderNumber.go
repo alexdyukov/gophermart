@@ -2,8 +2,8 @@ package core
 
 import "github.com/alexdyukov/gophermart/internal/sharedkernel"
 
-// OrderNumber is now represent users registered order
-type OrderNumber struct {
+// UserOrderNumber is now represent users registered order.
+type UserOrderNumber struct {
 	id      string
 	user    string
 	status  sharedkernel.Status
@@ -11,8 +11,8 @@ type OrderNumber struct {
 	accrual int
 }
 
-func NewOrderNumber(number, accrual int, userID string, status sharedkernel.Status) OrderNumber {
-	return OrderNumber{
+func NewOrderNumber(number, accrual int, userID string, status sharedkernel.Status) UserOrderNumber {
+	return UserOrderNumber{
 		id:      sharedkernel.NewUUID(),
 		user:    userID,
 		number:  number,

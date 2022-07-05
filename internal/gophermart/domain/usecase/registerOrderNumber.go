@@ -7,54 +7,52 @@ import (
 
 type (
 
-	// RegisterOrderRepository is a secondary port
-	RegisterOrderRepository interface {
-		SaveOrderNumber(core.OrderNumber) error
+	// RegisterUserOrderRepository is a secondary port.
+	RegisterUserOrderRepository interface {
+		SaveUserOrder(core.UserOrderNumber) error
 	}
 
-	// RegisterOrderCalculationStateGateway is a secondary port
-	RegisterOrderCalculationStateGateway interface {
-		GetOrderCalculationState(int) (*RegisterOrderCalculationStateDTO, error)
+	// CalculationStateGateway is a secondary port.
+	CalculationStateGateway interface {
+		GetOrderCalculationState(int) (*CalculationStateDTO, error)
 	}
 
-	// RegisterOrderCalculationStateDTO is secondary DTO
-	RegisterOrderCalculationStateDTO struct {
-		Order   string              `json:"order"`
-		Status  sharedkernel.Status `json:"status"`
-		Accrual int                 `json:"accrual"`
+	// CalculationStateDTO is secondary DTO.
+	CalculationStateDTO struct {
+		Status  string `json:"status"`
+		Order   int    `json:"order"`
+		Accrual int    `json:"accrual"`
 	}
 
-	// RegisterOrderPrimaryPort is a primary port
-	RegisterOrderPrimaryPort interface {
+	// RegisterUserOrderPrimaryPort is a primary port.
+	RegisterUserOrderPrimaryPort interface {
 		Execute(int, *sharedkernel.User) error
 	}
 
-	// RegisterOrder is a usecase
-	RegisterOrder struct {
-		Repository     RegisterOrderRepository
-		ServiceGateway RegisterOrderCalculationStateGateway
+	// RegisterUserOrder is a usecase.
+	RegisterUserOrder struct {
+		Repository     RegisterUserOrderRepository
+		ServiceGateway CalculationStateGateway
 	}
 )
 
-func NewLoadOrderNumber(repo RegisterOrderRepository, gw RegisterOrderCalculationStateGateway) *RegisterOrder {
-	return &RegisterOrder{
+func NewLoadOrderNumber(repo RegisterUserOrderRepository, gw CalculationStateGateway) *RegisterUserOrder {
+	return &RegisterUserOrder{
 		Repository:     repo,
 		ServiceGateway: gw,
 	}
 }
 
-func (ro *RegisterOrder) Execute(number int, user *sharedkernel.User) error {
-
-	// todo: check incoming number
-
-	inputDTO, err := ro.ServiceGateway.GetOrderCalculationState(number)
+func (ruo *RegisterUserOrder) Execute(number int, user *sharedkernel.User) error {
+	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
 	if err != nil {
 		return err //nolint:wrapcheck // ok
 	}
 
-	orderNumber := core.NewOrderNumber(number, inputDTO.Accrual, user.ID(), inputDTO.Status)
+	// map inputDTO.Status into sharedkernel.Status
+	userOrder := core.NewOrderNumber(number, inputDTO.Accrual, user.ID(), sharedkernel.PROCESSED)
 
-	err = ro.Repository.SaveOrderNumber(orderNumber)
+	err = ruo.Repository.SaveUserOrder(userOrder)
 	if err != nil {
 		return err //nolint:wrapcheck // ok
 	}

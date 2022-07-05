@@ -21,7 +21,6 @@ import (
 )
 
 func main() {
-
 	// Configure application
 	gophermartConf := config.NewGophermartConfig()
 	dbConnString := gophermartConf.DBConnect
@@ -30,13 +29,14 @@ func main() {
 	// sub service
 	accrualAddr := gophermartConf.AccSystemAddr
 	gatewayEndpoint := "/api/orders/"
-
-	gophermartStore := postgres.NewGophermartStore()
+	accrualGateway := web.NewAccrualGateway(accrualAddr, gatewayEndpoint) // to config
 
 	conn, err := sql.Open("pgx", dbConnString)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	gophermartStore := postgres.NewGophermartDB(conn)
 
 	authStore, err := authPostgres.NewAuthStore(conn)
 	if err != nil {
@@ -51,21 +51,19 @@ func main() {
 	appRouter.Post("/api/user/register", authHandler.PostRegister(authUsecase.NewRegisterUser(authStore, jwtGateway)))
 	appRouter.Post("/api/user/login", authHandler.PostLogin(authUsecase.NewLoginUser(authStore, jwtGateway)))
 
-	accrualGateway := web.NewAccrualGateway(accrualAddr, gatewayEndpoint) // to config
-
 	appRouter.Group(func(subRouter chi.Router) {
 		subRouter.Use(appMiddleware.Authentication(jwtGateway))
-		subRouter.Post("/api/user/orders", handler.PostRegisterOrder(
+		subRouter.Post("/api/user/orders", handler.RegisterUserOrderPostHandler(
 			usecase.NewLoadOrderNumber(gophermartStore, accrualGateway)))
-		subRouter.Get("/api/user/orders", handler.GetOrders(usecase.NewListOrderNums(gophermartStore)))
-		subRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowBalanceState(gophermartStore)))
+		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(usecase.NewListUserOrders(gophermartStore)))
+		subRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowUserBalance(gophermartStore)))
 		subRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawUserFunds(gophermartStore)))
 		subRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(
 			usecase.NewListUserWithdrawals(gophermartStore)))
 	})
 
 	server := http.Server{ // nolint:exhaustivestruct // ok, exhaustive // ok
-		Addr:    addr, //":8089",
+		Addr:    addr,
 		Handler: appRouter,
 	}
 

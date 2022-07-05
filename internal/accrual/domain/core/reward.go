@@ -2,15 +2,15 @@ package core
 
 import "github.com/alexdyukov/gophermart/internal/sharedkernel"
 
-type RewardMechanic struct {
+type Reward struct {
 	id           string
 	match        string
 	rewardType   string
-	rewardPoints int
+	rewardPoints sharedkernel.Money
 }
 
-func NewRewardMechanic(match string, rewardPoints int, rewardType string) RewardMechanic {
-	return RewardMechanic{
+func NewReward(match string, rewardPoints sharedkernel.Money, rewardType string) Reward {
+	return Reward{
 		id:           sharedkernel.NewUUID(),
 		match:        match,
 		rewardPoints: rewardPoints,

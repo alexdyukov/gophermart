@@ -12,7 +12,7 @@ import (
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
-// PostRegisterOrder POST /api/user/orders — загрузка пользователем номера заказа для расчёта.
+// RegisterUserOrderPostHandler POST /api/user/orders — загрузка пользователем номера заказа для расчёта.
 // 200 — номер заказа уже был загружен этим пользователем;
 // 202 — новый номер заказа принят в обработку;
 // 400 — неверный формат запроса;
@@ -20,7 +20,7 @@ import (
 // 409 — номер заказа уже был загружен другим пользователем;
 // 422 — неверный формат номера заказа;
 // 500 — внутренняя ошибка сервера.
-func PostRegisterOrder(registerOrderUsecase usecase.RegisterOrderPrimaryPort) http.HandlerFunc {
+func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserOrderPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
@@ -45,7 +45,7 @@ func PostRegisterOrder(registerOrderUsecase usecase.RegisterOrderPrimaryPort) ht
 			return
 		}
 
-		err = registerOrderUsecase.Execute(orderNumber, user)
+		err = registerUserOrderUsecase.Execute(orderNumber, user)
 		if err != nil {
 			log.Println(err)
 		}
@@ -54,13 +54,13 @@ func PostRegisterOrder(registerOrderUsecase usecase.RegisterOrderPrimaryPort) ht
 	}
 }
 
-// GetOrders GET /api/user/orders — получение списка загруженных пользователем номеров заказов,
+// ListUserOrdersGetHandler GET /api/user/orders — получение списка загруженных пользователем номеров заказов,
 // статусов их обработки и информации о начислениях
 // 200 — успешная обработка запроса.
 // 204 — нет данных для ответа.
 // 401 — пользователь не авторизован.
 // 500 — внутренняя ошибка сервера.
-func GetOrders(listOrdersUsecase usecase.ListUserOrdersInputPort) http.HandlerFunc {
+func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
@@ -69,7 +69,7 @@ func GetOrders(listOrdersUsecase usecase.ListUserOrdersInputPort) http.HandlerFu
 			return
 		}
 
-		_, err := listOrdersUsecase.Execute(user)
+		_, err := listUserOrdersUsecase.Execute(user)
 		if err != nil {
 			log.Println(err)
 
@@ -84,7 +84,7 @@ func GetOrders(listOrdersUsecase usecase.ListUserOrdersInputPort) http.HandlerFu
 // 200 — успешная обработка запроса.
 // 401 — пользователь не авторизован.
 // 500 — внутренняя ошибка сервера.
-func GetBalance(showBalanceUsecase usecase.ShowUserBalanceInputPort) http.HandlerFunc {
+func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {

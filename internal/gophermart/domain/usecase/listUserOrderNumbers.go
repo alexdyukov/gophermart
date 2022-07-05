@@ -10,10 +10,10 @@ import (
 
 type (
 	ListUserOrdersRepository interface {
-		GetOrdersByUser(string) []core.OrderNumber
+		FindAllOrders(string) ([]core.UserOrderNumber, error)
 	}
 
-	ListUserOrdersInputPort interface {
+	ListUserOrdersPrimaryPort interface {
 		Execute(user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error)
 	}
 
@@ -29,14 +29,17 @@ type (
 	}
 )
 
-func NewListOrderNums(repo ListUserOrdersRepository) *ListUserOrders {
+func NewListUserOrders(repo ListUserOrdersRepository) *ListUserOrders {
 	return &ListUserOrders{
 		Repo: repo,
 	}
 }
 
 func (l *ListUserOrders) Execute(user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
-	orders := l.Repo.GetOrdersByUser(user.ID())
+	orders, err := l.Repo.FindAllOrders(user.ID())
+	if err != nil {
+		return nil, err
+	}
 
 	log.Println(orders)
 

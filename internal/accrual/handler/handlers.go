@@ -1,7 +1,8 @@
 package handler
 
 import (
-	"fmt"
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -13,24 +14,36 @@ import (
 // OrderCalculationGetHandler GET /api/orders/{number} — получение информации о расчёте начислений баллов лояльности;
 // 429 — превышено количество запросов к сервису.
 // 500 — внутренняя ошибка сервера.
-func OrderCalculationGetHandler(showLoyaltyUsecase usecase.ShowOrderCalculationPrimaryPort) http.HandlerFunc {
+func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCalculationPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		n := chi.URLParam(request, "number")
 
-		fmt.Println("ping get orders")
-
-		number := chi.URLParam(request, "number")
-
-		n, err := strconv.Atoi(number)
+		number, err := strconv.Atoi(n)
 		if err != nil {
-			log.Println(err)
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
 		}
 
-		err = showLoyaltyUsecase.Execute(n)
+		output, err := showOrderCalculationUsecase.Execute(number)
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		result, err := json.Marshal(output)
 		if err != nil {
 			log.Println(err)
 		}
 
 		writer.WriteHeader(http.StatusOK)
+
+		_, err = writer.Write(result)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
@@ -39,13 +52,28 @@ func OrderCalculationGetHandler(showLoyaltyUsecase usecase.ShowOrderCalculationP
 // 400 — неверный формат запроса;
 // 409 — заказ уже принят в обработку;
 // 500 — внутренняя ошибка сервера.
-func RegisterOrderPostHandler(calculateLoyaltyUsecase usecase.RegisterPurchasedOrderPrimaryPort) http.HandlerFunc {
+func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrderReceiptPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		dto := usecase.RegisterPurchasedOrderInputDTO{}
+		bytes, err := io.ReadAll(request.Body)
+		if err != nil {
+			writer.WriteHeader(http.StatusBadRequest)
 
-		err := calculateLoyaltyUsecase.Execute(dto)
+			return
+		}
+
+		orderReceiptDTO := usecase.RegisterOrderReceiptInputDTO{}
+
+		err = json.Unmarshal(bytes, &orderReceiptDTO)
+		if err != nil {
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		err = registerPurchasedOrderUsecase.Execute(orderReceiptDTO)
 		if err != nil {
 			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
 		}
 
 		writer.WriteHeader(http.StatusOK)
@@ -57,12 +85,13 @@ func RegisterOrderPostHandler(calculateLoyaltyUsecase usecase.RegisterPurchasedO
 // 400 — неверный формат запроса;
 // 409 — ключ поиска уже зарегистрирован;
 // 500 — внутренняя ошибка сервера.
-func RegisterMechanicPostHandler(registerMechanicUsecase usecase.RegisterMechanicPrimaryPort) http.HandlerFunc {
+func RegisterMechanicPostHandler(
+	registerRewardMechanicUsecase usecase.RegisterRewardMechanicPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		actor := ""
-		input := usecase.RegisterMechanicInputDTO{}
+		input := usecase.RegisterRewardMechanicInputDTO{}
 
-		err := registerMechanicUsecase.Execute(actor, &input)
+		err := registerRewardMechanicUsecase.Execute(actor, &input)
 		if err != nil {
 			log.Println(err)
 

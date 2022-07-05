@@ -9,7 +9,7 @@ import (
 
 type (
 	ListUserWithdrawalsRepository interface {
-		GetAccountByID(string) (core.Account, error)
+		FindAccountByID(string) (core.Account, error)
 	}
 
 	ListUserWithdrawalsInputPort interface {
@@ -17,9 +17,9 @@ type (
 	}
 
 	ListUserWithdrawalsOutputDTO struct {
-		ProcessedAt time.Time
-		Order       int
-		Sum         int
+		ProcessedAt time.Time `json:"processed_at"` // nolint:tagliatelle // external requirements
+		Order       string    `json:"order"`
+		Sum         int       `json:"sum"`
 	}
 
 	ListUserWithdrawals struct {
@@ -34,12 +34,12 @@ func NewListUserWithdrawals(repo ListUserWithdrawalsRepository) *ListUserWithdra
 }
 
 func (l *ListUserWithdrawals) Execute(user *sharedkernel.User) ([]ListUserWithdrawalsOutputDTO, error) {
-	_, err := l.Repo.GetAccountByID(user.ID())
+	_, err := l.Repo.FindAccountByID(user.ID())
 	if err != nil {
 		return nil, err // nolint:wrapcheck // ok
 	}
 
-	return []ListUserWithdrawalsOutputDTO{
-		{},
-	}, nil
+	// map entity to output
+
+	return []ListUserWithdrawalsOutputDTO{{}}, nil
 }
