@@ -13,12 +13,13 @@ import (
 // GetOrders GET /api/orders/{number} — получение информации о расчёте начислений баллов лояльности;
 func GetOrders(uc usecase.ShowLoyaltyPointsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println("bla")
+		fmt.Println("GetOrders: запустился хендлер  /api/orders/{number}")
 		number := chi.URLParam(request, "number")
 		n, _ := strconv.Atoi(number)
 		answ, err := uc.Execute(request.Context(), n)
 		if err != nil {
 			// 500 — внутренняя ошибка сервера.
+			fmt.Println("GetOrders: ушли в ошибку #1 ", err)
 			writer.WriteHeader(500)
 			http.Error(writer, err.Error(), 500)
 			return
@@ -32,6 +33,7 @@ func GetOrders(uc usecase.ShowLoyaltyPointsInputPort) http.HandlerFunc {
 		strJSON, err := json.Marshal(answ)
 
 		_, err = writer.Write(strJSON)
+		fmt.Println("GetOrders: все зашибись, отправили статус 200 и JSON ", string(strJSON))
 	}
 }
 
@@ -48,7 +50,7 @@ func PostOrders(uc usecase.CalculateLoyaltyPointsInputPort) http.HandlerFunc {
 		//400 — неверный формат запроса;
 		//409 — заказ уже принят в обработку;
 		//500 — внутренняя ошибка сервера.
-		writer.WriteHeader(200)
+		writer.WriteHeader(202)
 	}
 }
 

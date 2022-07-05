@@ -27,7 +27,7 @@ func PostOrder(uc usecase.LoadOrderNumberInputPort) http.HandlerFunc {
 		//409 — номер заказа уже был загружен другим пользователем;
 		//422 — неверный формат номера заказа;
 		//500 — внутренняя ошибка сервера.
-		writer.WriteHeader(200)
+		writer.WriteHeader(202)
 	}
 }
 
