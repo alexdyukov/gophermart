@@ -8,6 +8,9 @@ linters:
   enable-all: true
   disable:
     - revive #TODO
+    - exhaustivestruct
+    - exhaustruct
+    - wrapcheck
 
 linters-settings:
   errcheck:
@@ -34,8 +37,8 @@ linters-settings:
     check-generated: true
     default-signifies-exhaustive: true
   funlen:
-    lines: 40
-    statements: 20
+    lines: 50
+    statements: 26
   gci:
     no-inline-comments: true
     no-prefix-comments: true
