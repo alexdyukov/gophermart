@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Делала BeOl
 type ListOrderNumsRepository interface {
 	GetOrdersByUser(context.Context, string) ([]core.OrderNumber, error)
 }

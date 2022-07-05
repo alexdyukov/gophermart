@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// Делала BeOl
 type ShowBalanceStateRepo interface {
 	GetBalance(context.Context, string) (float32, float32, error)
 }
