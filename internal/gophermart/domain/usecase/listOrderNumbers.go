@@ -32,7 +32,7 @@ type ListOrderNumsDTO struct {
 	Number  string    `json:"number"`
 	Status  string    `json:"status"`
 	Accrual float32   `json:"accrual,omitempty"`
-	Data    time.Time `json:"_"`
+	Data    time.Time `json:"-"`
 	DataStr string    `json:"uploaded_at"`
 }
 
@@ -50,7 +50,7 @@ func (l *ListOrderNums) Execute(ctx context.Context, user string) ([]ListOrderNu
 		lstOrdNumsDTO = append(lstOrdNumsDTO, ListOrderNumsDTO{Number: order.Number, Status: order.Status.String(), Accrual: order.Accrual, Data: order.Data, DataStr: order.Data.Format(time.RFC3339)})
 	}
 
-	sort.Slice(&lstOrdNumsDTO, func(i, j int) bool {
+	sort.SliceStable(lstOrdNumsDTO, func(i, j int) bool {
 		return lstOrdNumsDTO[i].Data.Before(lstOrdNumsDTO[j].Data)
 	})
 
