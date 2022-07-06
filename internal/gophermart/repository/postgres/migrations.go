@@ -10,15 +10,15 @@ import (
 const (
 	photosSchema = `
 CREATE TABLE IF NOT EXISTS users (
- id varchar(40),
- uName varchar(40)  NOT NULL,
+ id TEXT,
+ uName TEXT  NOT NULL,
  uPassword	   TEXT,
  PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS orders (
- orderNumber	varchar(15) PRIMARY KEY, 
- userID		varchar(40),
+ orderNumber	TEXT PRIMARY KEY, 
+ userID			TEXT PRIMARY KEY,
  status			int,
  accrual		numeric,
  dateAndTime	timestamp,
@@ -26,8 +26,8 @@ FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS withdrawals (
- orderNumber	varchar(15) PRIMARY KEY,
- userID 		varchar(40),
+ orderNumber	TEXT PRIMARY KEY,
+ userID 		TEXT,
  dateAndTime	timestamp,
  amount			numeric,
 FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE

@@ -4,16 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/alexdyukov/gophermart/internal/gophermart/config"
-	"github.com/alexdyukov/gophermart/internal/gophermart/repository/postgres"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
-	"log"
-	"net/http"
-	"time"
-
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler"
+	"github.com/alexdyukov/gophermart/internal/gophermart/repository/postgres"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"log"
+	"net/http"
 )
 
 func main() {
@@ -28,7 +25,7 @@ func main() {
 	//gophermartStore := ""
 
 	//if appConf.DBConnect != "" {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	dataBase, err := postgres.OpenDB(appConf.DBConnect)
@@ -47,7 +44,7 @@ func main() {
 	gophermartStore := postgres.NewGophermartStore(dataBase)
 
 	// пробуем записать пользователя в таблицу
-	idUser := sharedkernel.NewUUID()
+	idUser := "057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b"
 	gophermartStore.SaveUser(ctx, "Oesya", "Olesya", idUser)
 
 	gophermartStore.SaveOrderTest(ctx, idUser, "9278923470", 500)
