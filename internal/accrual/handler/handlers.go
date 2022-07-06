@@ -28,7 +28,7 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 		output, err := showOrderCalculationUsecase.Execute(request.Context(), number)
 		if err != nil {
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError) //500
+			writer.WriteHeader(http.StatusInternalServerError) // 500
 
 			return
 		}

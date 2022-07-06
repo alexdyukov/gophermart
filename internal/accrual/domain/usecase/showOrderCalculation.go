@@ -3,9 +3,10 @@ package usecase
 import (
 	"context"
 	"errors"
+	"strconv"
+
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
-	"strconv"
 )
 
 type (
