@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"context"
 	"log"
 	"time"
 
@@ -11,11 +10,11 @@ import (
 
 type (
 	ListUserOrdersRepository interface {
-		FindAllOrders(context.Context, string) ([]core.UserOrderNumber, error)
+		FindAllOrders(string) ([]core.UserOrderNumber, error)
 	}
 
 	ListUserOrdersPrimaryPort interface {
-		Execute(context.Context, *sharedkernel.User) ([]ListUserOrdersOutputDTO, error)
+		Execute(user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error)
 	}
 
 	ListUserOrdersOutputDTO struct {
@@ -36,8 +35,8 @@ func NewListUserOrders(repo ListUserOrdersRepository) *ListUserOrders {
 	}
 }
 
-func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
-	orders, err := l.Repo.FindAllOrders(ctx, user.ID())
+func (l *ListUserOrders) Execute(user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
+	orders, err := l.Repo.FindAllOrders(user.ID())
 	if err != nil {
 		return nil, err
 	}

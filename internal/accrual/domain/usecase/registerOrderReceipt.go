@@ -1,18 +1,16 @@
 package usecase
 
 import (
-	"context"
-
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 )
 
 type (
 	RegisterOrderReceiptRepository interface {
-		SaveOrderReceipt(context.Context, *core.OrderReceipt) error
+		SaveOrderReceipt(*core.OrderReceipt) error
 	}
 
 	RegisterOrderReceiptPrimaryPort interface {
-		Execute(context.Context, RegisterOrderReceiptInputDTO) error
+		Execute(receipt RegisterOrderReceiptInputDTO) error
 	}
 
 	RegisterOrderReceiptInputDTO struct {
@@ -31,10 +29,10 @@ func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrder
 	}
 }
 
-func (c *RegisterOrderReceipt) Execute(ctx context.Context, dto RegisterOrderReceiptInputDTO) error {
+func (c *RegisterOrderReceipt) Execute(dto RegisterOrderReceiptInputDTO) error {
 	orderReceipt := core.NewOrderReceipt(dto.OrderNumber, dto.Goods)
 
-	err := c.repo.SaveOrderReceipt(ctx, orderReceipt)
+	err := c.repo.SaveOrderReceipt(orderReceipt)
 	if err != nil {
 		return err
 	}
