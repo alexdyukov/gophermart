@@ -10,12 +10,12 @@ import (
 	"github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
 )
 
-// PostLogin POST /api/user/login — аутентификация пользователя.
+// LoginPostHandler POST /api/user/login — аутентификация пользователя.
 // 200 — пользователь успешно аутентифицирован;
 // 400 — неверный формат запроса;
 // 401 — неверная пара логин/пароль;
 // 500 — внутренняя ошибка сервера.
-func PostLogin(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
+func LoginPostHandler(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		bytes, err := io.ReadAll(request.Body)
 		if err != nil {
@@ -49,10 +49,13 @@ func PostLogin(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
 			return
 		}
 
+		// Header or Cookie
+		// writer.Header().Set("Authorization", jwtString)
+
 		cookie := http.Cookie{ // nolint:exhaustivestruct // ok
 			Name:   "auth",
 			Value:  jwtString,
-			MaxAge: 3600 * 24, //nolint:gomnd // temporary until config
+			MaxAge: 3600 * 24, //nolint:gomnd // temporary
 		}
 
 		http.SetCookie(writer, &cookie)
@@ -60,12 +63,12 @@ func PostLogin(loginUsecase usecase.LoginUserInputPort) http.HandlerFunc {
 	}
 }
 
-// PostRegister POST /api/user/register — регистрация пользователя.
+// RegisterPostHandler POST /api/user/register — регистрация пользователя.
 // 200 — пользователь успешно зарегистрирован и аутентифицирован
 // 400 — неверный формат запроса;
 // 409 — логин уже занят;
 // 500 — внутренняя ошибка сервера.
-func PostRegister(registerUsecase usecase.RegisterUserPrimaryPort) http.HandlerFunc {
+func RegisterPostHandler(registerUsecase usecase.RegisterUserPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		bytes, err := io.ReadAll(request.Body)
 		if err != nil {

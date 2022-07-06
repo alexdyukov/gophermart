@@ -43,7 +43,7 @@ func main() {
 	accrualRouter.Post("/api/goods", handler.RegisterMechanicPostHandler(usecase.NewRegisterRewardMechanic(accrualDB)))
 
 	server := http.Server{
-		Addr:    addr, // ":8088",
+		Addr:    addr,
 		Handler: accrualRouter,
 	}
 

@@ -19,9 +19,9 @@ type (
 
 	// CalculationStateDTO is secondary DTO.
 	CalculationStateDTO struct {
-		Status  string `json:"status"`
-		Order   int    `json:"order"`
-		Accrual int    `json:"accrual"`
+		Status  sharedkernel.Status `json:"status"`
+		Order   int                 `json:"order"`
+		Accrual int                 `json:"accrual"`
 	}
 
 	// RegisterUserOrderPrimaryPort is a primary port.
@@ -46,15 +46,14 @@ func NewLoadOrderNumber(repo RegisterUserOrderRepository, gw CalculationStateGat
 func (ruo *RegisterUserOrder) Execute(number int, user *sharedkernel.User) error {
 	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
 	if err != nil {
-		return err //nolint:wrapcheck // ok
+		return err // nolint:wrapcheck // ok
 	}
 
-	// map inputDTO.Status into sharedkernel.Status
-	userOrder := core.NewOrderNumber(number, inputDTO.Accrual, user.ID(), sharedkernel.PROCESSED)
+	userOrder := core.NewOrderNumber(number, inputDTO.Accrual, user.ID(), inputDTO.Status)
 
 	err = ruo.Repository.SaveUserOrder(userOrder)
 	if err != nil {
-		return err //nolint:wrapcheck // ok
+		return err // nolint:wrapcheck // ok
 	}
 
 	return nil

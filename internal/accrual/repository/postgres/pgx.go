@@ -30,7 +30,7 @@ func (db *AccrualDB) SaveRewardMechanic(_ *core.Reward) error {
 func (db *AccrualDB) GetOrderByNumber(_ int) (core.OrderReceipt, error) {
 	order := core.OrderReceipt{ // fake
 		Status:      sharedkernel.PROCESSING,
-		Accrual:     0,
+		Accrual:     16,     // nolint:gomnd // temporary fake
 		OrderNumber: 122937, // nolint:gomnd // temporary fake
 		Goods: []core.Product{
 			{

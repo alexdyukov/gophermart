@@ -48,8 +48,9 @@ func main() {
 
 	var tokenTTL int64 = 3600 * 24 // to config
 	jwtGateway := token.NewAuthJWTGateway(tokenTTL, []byte("secret"))
-	appRouter.Post("/api/user/register", authHandler.PostRegister(authUsecase.NewRegisterUser(authStore, jwtGateway)))
-	appRouter.Post("/api/user/login", authHandler.PostLogin(authUsecase.NewLoginUser(authStore, jwtGateway)))
+	appRouter.Post("/api/user/register", authHandler.RegisterPostHandler(
+		authUsecase.NewRegisterUser(authStore, jwtGateway)))
+	appRouter.Post("/api/user/login", authHandler.LoginPostHandler(authUsecase.NewLoginUser(authStore, jwtGateway)))
 
 	appRouter.Group(func(subRouter chi.Router) {
 		subRouter.Use(appMiddleware.Authentication(jwtGateway))
