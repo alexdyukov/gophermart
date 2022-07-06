@@ -16,11 +16,10 @@ func calculateChecksum(luhnString string, double bool) int {
 	checksum := 0
 
 	for i := len(source) - 1; i > -1; i-- {
-		t, err := strconv.ParseInt(source[i], 10, 8)
+		num, err := strconv.Atoi(source[i])
 		if err != nil {
 			return 1
 		}
-		num := int(t)
 
 		if double {
 			num *= 2

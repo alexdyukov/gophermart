@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
@@ -50,5 +49,6 @@ func (s *ShowOrderCalculation) Execute(ctx context.Context, number int) (*ShowOr
 
 		return &output, nil
 	}
-	return &ShowOrderCalculationOutputDTO{}, errors.New("No valid order number for Luhn algorithm")
+
+	return &ShowOrderCalculationOutputDTO{}, sharedkernel.ErrorNotValidOrderNumber(strconv.Itoa(number))
 }
