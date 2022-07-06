@@ -3,45 +3,73 @@ package core
 import (
 	"errors"
 	"time"
+
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
-type withdraw struct {
-	OrderNumber int
-	Amount      int
-	time        int64
-}
+type (
+	AccountWithdrawals struct {
+		ID            string
+		OrderNumber   int
+		Amount        sharedkernel.Money
+		OperationTime int64
+	}
 
-type Account struct {
-	id              string
-	user            string //owner
-	points          int
-	withdrawHistory []withdraw
-}
+	Account struct {
+		id              string
+		user            string
+		withdrawHistory []AccountWithdrawals
+		balance         sharedkernel.Money
+	}
+)
 
-func NewAccount(user string) Account {
-	return Account{
-		user: user,
+var ErrNotEnoughFunds = errors.New("unfortunately, your account do not have enough funds")
+
+func NewAccount(userID string) *Account {
+	return &Account{
+		id:              sharedkernel.NewUUID(),
+		user:            userID,
+		withdrawHistory: nil,
+		balance:         0,
 	}
 }
 
-func (a *Account) CurrentPoints() int {
-	return a.points
+func RestoreAccount(id, userID string, balance sharedkernel.Money) *Account {
+	return &Account{
+		id:              id,
+		user:            userID,
+		withdrawHistory: nil,
+		balance:         balance,
+	}
 }
 
-func (a *Account) AddPoints() { /* calculations.. */ }
+func (acc *Account) CurrentBalance() sharedkernel.Money {
+	return acc.balance
+}
 
-func (a *Account) WithdrawPoints(order int, amount int) error {
-	if amount > a.points {
-		return errors.New("not enough funds")
+func (acc *Account) WithdrawalsSum() sharedkernel.Money {
+	// return cached sum or calculate on fly
+	return 0
+}
+
+func (acc *Account) Add(amount sharedkernel.Money) {
+	acc.balance += amount
+}
+
+// WithdrawPoints is just a representation of core model functionality behavior.
+func (acc *Account) WithdrawPoints(order int, amount sharedkernel.Money) error {
+	if amount > acc.balance {
+		return ErrNotEnoughFunds
 	}
-	w := withdraw{
-		OrderNumber: order,
-		Amount:      amount,
-		time:        time.Now().Unix(),
+
+	with := AccountWithdrawals{
+		OrderNumber:   order,
+		Amount:        amount,
+		OperationTime: time.Now().Unix(),
 	}
-	a.points = -amount
-	a.withdrawHistory = append(a.withdrawHistory, w)
+
+	acc.balance = -amount
+	acc.withdrawHistory = append(acc.withdrawHistory, with)
+
 	return nil
 }
-
-// ... other funcs

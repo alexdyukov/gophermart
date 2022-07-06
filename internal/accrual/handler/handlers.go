@@ -1,7 +1,9 @@
 package handler
 
 import (
-	"fmt"
+	"encoding/json"
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -9,56 +11,92 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// GetOrders GET /api/orders/{number} — получение информации о расчёте начислений баллов лояльности;
-func GetOrders(uc usecase.ShowLoyaltyPointsInputPort) http.HandlerFunc {
+// OrderCalculationGetHandler GET /api/orders/{number} — получение информации о расчёте начислений баллов лояльности;
+// 429 — превышено количество запросов к сервису.
+// 500 — внутренняя ошибка сервера.
+func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCalculationPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println("bla")
-		number := chi.URLParam(request, "number")
-		n, _ := strconv.Atoi(number)
-		err := uc.Execute(n)
+		n := chi.URLParam(request, "number")
+
+		number, err := strconv.Atoi(n)
 		if err != nil {
-			// todo: log error
-			// todo: prepare response
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
 		}
-		// 429 — превышено количество запросов к сервису.
-		// 500 — внутренняя ошибка сервера.
-		writer.WriteHeader(200)
+
+		output, err := showOrderCalculationUsecase.Execute(number)
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		result, err := json.Marshal(output)
+		if err != nil {
+			log.Println(err)
+		}
+
+		writer.WriteHeader(http.StatusOK)
+
+		_, err = writer.Write(result)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
-// PostOrders POST /api/orders — регистрация нового совершённого заказа
-func PostOrders(uc usecase.CalculateLoyaltyPointsInputPort) http.HandlerFunc {
+// RegisterOrderPostHandler POST /api/orders — регистрация нового совершённого заказа.
+// 202 — заказ успешно принят в обработку;
+// 400 — неверный формат запроса;
+// 409 — заказ уже принят в обработку;
+// 500 — внутренняя ошибка сервера.
+func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrderReceiptPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		dto := usecase.CalculateLoyaltyPointsInputDTO{}
-		err := uc.Execute(dto)
+		bytes, err := io.ReadAll(request.Body)
 		if err != nil {
-			// todo: log error
-			// todo: prepare response
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
 		}
-		//202 — заказ успешно принят в обработку;
-		//400 — неверный формат запроса;
-		//409 — заказ уже принят в обработку;
-		//500 — внутренняя ошибка сервера.
-		writer.WriteHeader(200)
+
+		orderReceiptDTO := usecase.RegisterOrderReceiptInputDTO{}
+
+		err = json.Unmarshal(bytes, &orderReceiptDTO)
+		if err != nil {
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		err = registerPurchasedOrderUsecase.Execute(orderReceiptDTO)
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
+		}
+
+		writer.WriteHeader(http.StatusOK)
 	}
 }
 
-// PostGoods POST /api/goods — регистрация информации о новой механике вознаграждения за товар.
-func PostGoods(uc usecase.RegisterMechanicInputPort) http.HandlerFunc {
+// RegisterMechanicPostHandler POST /api/goods — регистрация информации о новой механике вознаграждения за товар.
+// 200 — вознаграждение успешно зарегистрировано;
+// 400 — неверный формат запроса;
+// 409 — ключ поиска уже зарегистрирован;
+// 500 — внутренняя ошибка сервера.
+func RegisterMechanicPostHandler(registerRewardUsecase usecase.RegisterRewardMechanicPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-
-		// get manager from context
 		actor := ""
-		input := usecase.RegisterMechanicInputDTO{}
-		err := uc.Execute(actor, input)
+		input := usecase.RegisterRewardMechanicInputDTO{}
+
+		err := registerRewardUsecase.Execute(actor, &input)
 		if err != nil {
-			// todo: log error
-			// todo: prepare response
+			log.Println(err)
+
+			return
 		}
-		//200 — вознаграждение успешно зарегистрировано;
-		//400 — неверный формат запроса;
-		//409 — ключ поиска уже зарегистрирован;
-		//500 — внутренняя ошибка сервера.
-		writer.WriteHeader(200)
+
+		writer.WriteHeader(http.StatusOK)
 	}
 }
