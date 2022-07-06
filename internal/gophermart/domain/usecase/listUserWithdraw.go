@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
@@ -9,11 +10,11 @@ import (
 
 type (
 	ListUserWithdrawalsRepository interface {
-		FindAccountByID(string) (core.Account, error)
+		FindAccountByID(context.Context, string) (core.Account, error)
 	}
 
 	ListUserWithdrawalsInputPort interface {
-		Execute(user *sharedkernel.User) ([]ListUserWithdrawalsOutputDTO, error)
+		Execute(context.Context, *sharedkernel.User) ([]ListUserWithdrawalsOutputDTO, error)
 	}
 
 	ListUserWithdrawalsOutputDTO struct {
@@ -33,8 +34,10 @@ func NewListUserWithdrawals(repo ListUserWithdrawalsRepository) *ListUserWithdra
 	}
 }
 
-func (l *ListUserWithdrawals) Execute(user *sharedkernel.User) ([]ListUserWithdrawalsOutputDTO, error) {
-	_, err := l.Repo.FindAccountByID(user.ID())
+func (list *ListUserWithdrawals) Execute(ctx context.Context, user *sharedkernel.User) (
+	[]ListUserWithdrawalsOutputDTO, error,
+) { // nolint:whitespace // conflict with gofumpt
+	_, err := list.Repo.FindAccountByID(ctx, user.ID())
 	if err != nil {
 		return nil, err // nolint:wrapcheck // ok
 	}

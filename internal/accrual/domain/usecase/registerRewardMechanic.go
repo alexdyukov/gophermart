@@ -1,17 +1,19 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type (
 	RegisterRewardMechanicPrimaryPort interface {
-		Execute(string, *RegisterRewardMechanicInputDTO) error
+		Execute(context.Context, *RegisterRewardMechanicInputDTO) error
 	}
 
 	RegisterRewardMechanicRepository interface {
-		SaveRewardMechanic(*core.Reward) error
+		SaveRewardMechanic(context.Context, *core.Reward) error
 	}
 
 	RegisterRewardMechanicInputDTO struct {
@@ -31,10 +33,10 @@ func NewRegisterRewardMechanic(repo RegisterRewardMechanicRepository) *RegisterR
 	}
 }
 
-func (r *RegisterRewardMechanic) Execute(_ string, dto *RegisterRewardMechanicInputDTO) error {
+func (r *RegisterRewardMechanic) Execute(ctx context.Context, dto *RegisterRewardMechanicInputDTO) error {
 	mechanic := core.NewReward(dto.Match, dto.Reward, dto.RewardType)
 
-	err := r.Repo.SaveRewardMechanic(&mechanic)
+	err := r.Repo.SaveRewardMechanic(ctx, &mechanic)
 	if err != nil {
 		return err //nolint:wrapcheck // ok
 	}

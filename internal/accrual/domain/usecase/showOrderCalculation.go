@@ -1,16 +1,18 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 )
 
 type (
 	ShowOrderCalculationRepository interface {
-		GetOrderByNumber(int) (core.OrderReceipt, error)
+		GetOrderByNumber(context.Context, int) (core.OrderReceipt, error)
 	}
 
 	ShowOrderCalculationPrimaryPort interface {
-		Execute(int) (*ShowOrderCalculationOutputDTO, error)
+		Execute(context.Context, int) (*ShowOrderCalculationOutputDTO, error)
 	}
 
 	ShowOrderCalculationOutputDTO struct {
@@ -30,8 +32,8 @@ func NewShowOrderCalculation(repo ShowOrderCalculationRepository) *ShowOrderCalc
 	}
 }
 
-func (s *ShowOrderCalculation) Execute(number int) (*ShowOrderCalculationOutputDTO, error) {
-	orderState, err := s.Repo.GetOrderByNumber(number)
+func (s *ShowOrderCalculation) Execute(ctx context.Context, number int) (*ShowOrderCalculationOutputDTO, error) {
+	orderState, err := s.Repo.GetOrderByNumber(ctx, number)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // ok
 	}

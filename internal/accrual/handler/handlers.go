@@ -25,7 +25,7 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 			return
 		}
 
-		output, err := showOrderCalculationUsecase.Execute(number)
+		output, err := showOrderCalculationUsecase.Execute(request.Context(), number)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -70,7 +70,7 @@ func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrde
 			return
 		}
 
-		err = registerPurchasedOrderUsecase.Execute(orderReceiptDTO)
+		err = registerPurchasedOrderUsecase.Execute(request.Context(), orderReceiptDTO)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -87,10 +87,9 @@ func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrde
 // 500 — внутренняя ошибка сервера.
 func RegisterMechanicPostHandler(registerRewardUsecase usecase.RegisterRewardMechanicPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		actor := ""
 		input := usecase.RegisterRewardMechanicInputDTO{}
 
-		err := registerRewardUsecase.Execute(actor, &input)
+		err := registerRewardUsecase.Execute(request.Context(), &input)
 		if err != nil {
 			log.Println(err)
 
