@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-  
+
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
@@ -31,7 +31,6 @@ func NewShowUserBalance(repo ShowUserBalanceRepository) *ShowUserBalance {
 		Repo: repo,
 	}
 }
-
 
 func (s *ShowUserBalance) Execute(ctx context.Context, user *sharedkernel.User) (*ShowUserBalanceOutputDTO, error) {
 	userAccount, err := s.Repo.FindAccountByID(ctx, user.ID())
