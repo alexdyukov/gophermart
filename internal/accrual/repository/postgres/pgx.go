@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
@@ -27,7 +28,7 @@ func (db *AccrualDB) SaveRewardMechanic(_ *core.Reward) error {
 	return nil
 }
 
-func (db *AccrualDB) GetOrderByNumber(_ int) (core.OrderReceipt, error) {
+func (db *AccrualDB) GetOrderByNumber(_ context.Context, _ int) (core.OrderReceipt, error) {
 	order := core.OrderReceipt{ // fake
 		Status:      sharedkernel.PROCESSING,
 		Accrual:     16,     // nolint:gomnd // temporary fake

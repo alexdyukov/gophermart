@@ -25,10 +25,10 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 			return
 		}
 
-		output, err := showOrderCalculationUsecase.Execute(number)
+		output, err := showOrderCalculationUsecase.Execute(request.Context(), number)
 		if err != nil {
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError)
+			writer.WriteHeader(http.StatusInternalServerError) //500
 
 			return
 		}

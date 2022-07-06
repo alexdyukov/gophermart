@@ -1,16 +1,20 @@
 package usecase
 
 import (
+	"context"
+	"errors"
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
+	"strconv"
 )
 
 type (
 	ShowOrderCalculationRepository interface {
-		GetOrderByNumber(int) (core.OrderReceipt, error)
+		GetOrderByNumber(context.Context, int) (core.OrderReceipt, error)
 	}
 
 	ShowOrderCalculationPrimaryPort interface {
-		Execute(int) (*ShowOrderCalculationOutputDTO, error)
+		Execute(context.Context, int) (*ShowOrderCalculationOutputDTO, error)
 	}
 
 	ShowOrderCalculationOutputDTO struct {
@@ -30,17 +34,20 @@ func NewShowOrderCalculation(repo ShowOrderCalculationRepository) *ShowOrderCalc
 	}
 }
 
-func (s *ShowOrderCalculation) Execute(number int) (*ShowOrderCalculationOutputDTO, error) {
-	orderState, err := s.Repo.GetOrderByNumber(number)
-	if err != nil {
-		return nil, err //nolint:wrapcheck // ok
-	}
+func (s *ShowOrderCalculation) Execute(ctx context.Context, number int) (*ShowOrderCalculationOutputDTO, error) {
+	if sharedkernel.ValidLuhn(strconv.Itoa(number)) {
+		orderState, err := s.Repo.GetOrderByNumber(ctx, number)
+		if err != nil {
+			return nil, err //nolint:wrapcheck // ok
+		}
 
-	output := ShowOrderCalculationOutputDTO{
-		Order:   orderState.OrderNumber,
-		Status:  orderState.Status.String(),
-		Accrual: orderState.Accrual,
-	}
+		output := ShowOrderCalculationOutputDTO{
+			Order:   orderState.OrderNumber,
+			Status:  orderState.Status.String(),
+			Accrual: orderState.Accrual,
+		}
 
-	return &output, nil
+		return &output, nil
+	}
+	return &ShowOrderCalculationOutputDTO{}, errors.New("No valid order number for Luhn algorithm")
 }

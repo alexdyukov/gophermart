@@ -1,6 +1,9 @@
 package memory
 
-import "github.com/alexdyukov/gophermart/internal/accrual/domain/core"
+import (
+	"context"
+	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
+)
 
 type AccrualStore struct {
 	// map.
@@ -20,7 +23,7 @@ func (m *AccrualStore) SaveRewardMechanic(_ *core.Reward) error {
 	return nil
 }
 
-func (m *AccrualStore) GetOrderByNumber(_ int) error {
+func (m *AccrualStore) GetOrderByNumber(_ context.Context, _ int) error {
 	// work with db.
 	return nil
 }
