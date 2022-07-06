@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-// Valid returns a boolean indicating if the argument was valid according to the Luhn algorithm.
 func ValidLuhn(luhnString string) bool {
 	checksumMod := calculateChecksum(luhnString, false) % 10
 
@@ -17,7 +16,10 @@ func calculateChecksum(luhnString string, double bool) int {
 	checksum := 0
 
 	for i := len(source) - 1; i > -1; i-- {
-		t, _ := strconv.ParseInt(source[i], 10, 8)
+		t, err := strconv.ParseInt(source[i], 10, 8)
+		if err != nil {
+			return 1
+		}
 		num := int(t)
 
 		if double {
