@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-
+  
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 )
 

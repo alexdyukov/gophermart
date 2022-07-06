@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-
+  
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
@@ -52,6 +52,7 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sha
 	}
 
 	userOrder := core.NewOrderNumber(number, inputDTO.Accrual, user.ID(), inputDTO.Status)
+
 
 	err = ruo.Repository.SaveUserOrder(ctx, userOrder)
 	if err != nil {
