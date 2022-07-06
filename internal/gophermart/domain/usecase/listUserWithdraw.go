@@ -34,7 +34,6 @@ func NewListUserWithdrawals(repo ListUserWithdrawalsRepository) *ListUserWithdra
 	}
 }
 
-
 func (list *ListUserWithdrawals) Execute(ctx context.Context, user *sharedkernel.User) (
 	[]ListUserWithdrawalsOutputDTO, error,
 ) { // nolint:whitespace // conflict with gofumpt

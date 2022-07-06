@@ -72,7 +72,6 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 			return
 		}
 
-
 		_, err := listUserOrdersUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
@@ -163,7 +162,6 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 
 			return
 		}
-
 
 		_, err := listWithdrawalsUsecase.Execute(request.Context(), user)
 		if err != nil {
