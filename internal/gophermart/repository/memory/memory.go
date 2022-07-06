@@ -100,7 +100,17 @@ func (p *GophermartStore) SaveOrderNumber(core.OrderNumber) error {
 	return nil
 }
 
-func (p *GophermartStore) SaveAccount(core.Account) error {
+func (p *GophermartStore) SaveAccount(context.Context, core.Account) error {
 	// work with db
+	return nil
+}
+
+func (p *GophermartStore) SaveOrderTest(ctx context.Context, userId string, numOrder string, sum float32) error {
+
+	return nil
+}
+
+func (p *GophermartStore) SaveUser(ctx context.Context, name string, passw string, userID string) error {
+
 	return nil
 }

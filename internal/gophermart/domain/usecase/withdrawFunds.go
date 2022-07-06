@@ -10,7 +10,7 @@ import (
 
 type WithdrawFundsRepository interface {
 	GetAccountByID(context.Context, string) (core.Account, error)
-	SaveAccount(core.Account) error
+	SaveAccount(context.Context, core.Account) error
 }
 
 type WithdrawFundsInputPort interface {
@@ -38,7 +38,7 @@ func (w *WithdrawFunds) Execute(ctx context.Context, id string, dto WithdrawFund
 	account, _ := w.Repo.GetAccountByID(ctx, id)
 	// do work with account
 	_ = account.WithdrawPoints(dto.Order, dto.Sum)
-	_ = w.Repo.SaveAccount(account)
+	_ = w.Repo.SaveAccount(ctx, account)
 
 	return nil
 }
