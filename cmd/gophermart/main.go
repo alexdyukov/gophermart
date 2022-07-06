@@ -36,7 +36,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	gophermartStore := postgres.NewGophermartDB(conn)
+	gophermartStore, err := postgres.NewGophermartDB(conn)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	authStore, err := authPostgres.NewAuthStore(conn)
 	if err != nil {

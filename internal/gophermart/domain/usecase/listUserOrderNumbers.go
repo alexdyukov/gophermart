@@ -21,11 +21,11 @@ type (
 	}
 
 	ListUserOrdersOutputDTO struct {
+		UploadedAt    time.Time          `json:"-"`           // nolint:tagliatelle // ok
+		UploadedAtStr string             `json:"uploaded_at"` // nolint:tagliatelle // ok
 		Number        string             `json:"number"`
 		Status        string             `json:"status"`
 		Accrual       sharedkernel.Money `json:"accrual"`
-		UploadedAt    time.Time          `json:"-"`
-		UploadedAtStr string             `json:"uploaded_at"` // nolint:tagliatelle // ok
 	}
 
 	ListUserOrders struct {
@@ -50,8 +50,15 @@ func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) (
 	lstOrdNumsDTO := make([]ListUserOrdersOutputDTO, 0)
 
 	for _, order := range orders {
-		lstOrdNumsDTO = append(lstOrdNumsDTO, ListUserOrdersOutputDTO{Number: strconv.Itoa(order.Number), Status: order.Status.String(), Accrual: order.Accrual, UploadedAt: order.Datе, UploadedAtStr: order.Datе.Format(time.RFC3339)})
+		lstOrdNumsDTO = append(lstOrdNumsDTO, ListUserOrdersOutputDTO{
+			Number:        strconv.Itoa(order.Number),
+			Status:        order.Status.String(),
+			Accrual:       order.Accrual,
+			UploadedAt:    order.DateAndTime,
+			UploadedAtStr: order.DateAndTime.Format(time.RFC3339),
+		})
 	}
+
 	sort.SliceStable(lstOrdNumsDTO, func(i, j int) bool {
 		return lstOrdNumsDTO[i].UploadedAt.Before(lstOrdNumsDTO[j].UploadedAt)
 	})
