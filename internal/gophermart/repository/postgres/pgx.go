@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
+	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 )
@@ -17,10 +19,19 @@ func NewGophermartDB(conn *sql.DB) *GophermartDB {
 	}
 }
 
-func (p *GophermartDB) FindAllOrders(ctx context.Context, _ string) ([]core.UserOrderNumber, error) {
+func (p *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.UserOrderNumber, error) {
 	// retrieve from database all user's order numbers with batched query
 	// and construct list of entities
-	return nil, nil
+
+	rez := make([]core.UserOrderNumber, 0)
+
+	ord := core.NewOrderNumber(3283027263, 500.79, "", sharedkernel.NEW, time.Now())
+	rez = append(rez, ord)
+
+	ord = core.NewOrderNumber(3283027263, 500.79, "", sharedkernel.NEW, time.Now())
+	rez = append(rez, ord)
+
+	return rez, nil
 }
 
 func (p *GophermartDB) FindAccountByID(ctx context.Context, _ string) (core.Account, error) {
