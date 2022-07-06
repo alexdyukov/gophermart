@@ -27,24 +27,12 @@ func (p *GophermartStore) GetOrdersByUser(ctx context.Context, user string) ([]c
 	accrual,
 	dateAndTime
 	FROM orders
-	WHERE userID=$1 ;
+	WHERE uid = $1
 	`
 
-	//selectSQL := `
-	//SELECT
-	//orderNumber,
-	//status,
-	//accrual,
-	//dateAndTime,
-	//userID
-	//FROM orders;
-	//`
-
 	rez := make([]core.OrderNumber, 0)
-
 	rows, err := p.db.QueryContext(ctx, selectSQL, user)
 	if err != nil {
-		fmt.Println("возникла ошибка в процессе получения списка заказов ", err)
 		return rez, err
 	}
 
@@ -58,7 +46,10 @@ func (p *GophermartStore) GetOrdersByUser(ctx context.Context, user string) ([]c
 
 	for rows.Next() {
 
-		err = rows.Scan(&number, &status, &accrual, &data, &userID)
+		err = rows.Scan(&number, &status, &accrual, &data)
+		if err != nil {
+			return nil, err
+		}
 
 		ord := core.OrderNumber{
 			Id:      sharedkernel.NewUUID(),
@@ -69,13 +60,9 @@ func (p *GophermartStore) GetOrdersByUser(ctx context.Context, user string) ([]c
 			Data:    data,
 		}
 
-		if err != nil {
-			return nil, err
-		}
 		rez = append(rez, ord)
 	}
 
-	fmt.Println("из БД получили такие данные: ", rez)
 	return rez, nil
 }
 

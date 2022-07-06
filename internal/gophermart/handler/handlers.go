@@ -34,7 +34,7 @@ func PostOrder(uc usecase.LoadOrderNumberInputPort) http.HandlerFunc {
 // GetOrders GET /api/user/orders — получение списка загруженных пользователем номеров заказов, статусов их обработки и информации о начислениях;
 func GetOrders(uc usecase.ListOrderNumsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		user := "8a0a3e2f-21e3-4209-88dd-30d74337bc64" // тут мы должны будем получить пользователя после авторизации
+		user := "057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b" // тут мы должны будем получить пользователя после авторизации
 		list, err := uc.Execute(request.Context(), user)
 		if err != nil {
 			//204 — нет данных для ответа.

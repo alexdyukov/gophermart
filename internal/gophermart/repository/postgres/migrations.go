@@ -10,31 +10,32 @@ import (
 const (
 	photosSchema = `
 CREATE TABLE IF NOT EXISTS users (
- id TEXT,
- uName TEXT  NOT NULL,
- uPassword	   TEXT,
- PRIMARY KEY (id)
+ uid TEXT NOT NULL,
+ login TEXT  NOT NULL,
+ passwd	   TEXT NOT NULL,
+ PRIMARY KEY (uid)
 );
 
 CREATE TABLE IF NOT EXISTS orders (
- orderNumber	TEXT PRIMARY KEY, 
- userID			TEXT PRIMARY KEY,
- status			int,
+ orderNumber	TEXT NOT NULL, 
+ uid			TEXT,
+ status			int  NOT NULL,
  accrual		numeric,
  dateAndTime	timestamp,
-FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE
+ PRIMARY KEY (orderNumber, uid)
 );
 
 CREATE TABLE IF NOT EXISTS withdrawals (
- orderNumber	TEXT PRIMARY KEY,
- userID 		TEXT,
+ orderNumber	TEXT NOT NULL,
+ uid 			TEXT,
  dateAndTime	timestamp,
  amount			numeric,
-FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE
+ PRIMARY KEY (orderNumber, uid)
 );
 `
 )
 
+//FOREIGN KEY (userID) REFERENCES users (id) ON DELETE CASCADE
 func InitSchema(ctx context.Context, db *sql.DB) error {
 	_, err := db.ExecContext(ctx, photosSchema)
 	return err
