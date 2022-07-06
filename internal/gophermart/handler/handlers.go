@@ -45,9 +45,12 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 			return
 		}
 
-		err = registerUserOrderUsecase.Execute(orderNumber, user)
+		err = registerUserOrderUsecase.Execute(request.Context(), orderNumber, user)
 		if err != nil {
 			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
+
+			return
 		}
 
 		writer.WriteHeader(http.StatusOK)
@@ -69,9 +72,11 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 			return
 		}
 
-		_, err := listUserOrdersUsecase.Execute(user)
+
+		_, err := listUserOrdersUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
@@ -93,9 +98,10 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		_, err := showBalanceUsecase.Execute(user)
+		_, err := showBalanceUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
@@ -132,9 +138,10 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 			log.Println(err)
 		}
 
-		err = withdrawFundsUsecase.Execute(user, dto)
+		err = withdrawFundsUsecase.Execute(request.Context(), user, dto)
 		if err != nil {
 			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
@@ -157,9 +164,11 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 			return
 		}
 
-		_, err := listWithdrawalsUsecase.Execute(user)
+
+		_, err := listWithdrawalsUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}

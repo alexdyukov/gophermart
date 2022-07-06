@@ -1,18 +1,20 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type (
 	WithdrawUserFundsRepository interface {
-		FindAccountByID(string) (core.Account, error)
-		SaveAccount(core.Account) error
+		FindAccountByID(context.Context, string) (core.Account, error)
+		SaveAccount(context.Context, core.Account) error
 	}
 
 	WithdrawFundsInputPort interface {
-		Execute(*sharedkernel.User, WithdrawUserFundsInputDTO) error
+		Execute(context.Context, *sharedkernel.User, WithdrawUserFundsInputDTO) error
 	}
 
 	// WithdrawUserFundsInputDTO Example of DTO with json at usecase level, which not quite correct.
@@ -32,8 +34,8 @@ func NewWithdrawUserFunds(repo WithdrawUserFundsRepository) *WithdrawUserFunds {
 	}
 }
 
-func (w *WithdrawUserFunds) Execute(user *sharedkernel.User, _ WithdrawUserFundsInputDTO) error {
-	_, err := w.Repo.FindAccountByID(user.ID())
+func (w *WithdrawUserFunds) Execute(ctx context.Context, user *sharedkernel.User, _ WithdrawUserFundsInputDTO) error {
+	_, err := w.Repo.FindAccountByID(ctx, user.ID())
 	if err != nil {
 		return err // nolint:wrapcheck // ok
 	}
