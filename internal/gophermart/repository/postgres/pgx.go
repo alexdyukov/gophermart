@@ -34,7 +34,7 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 	status,
 	accrual,
 	dateAndTime
-	FROM orders
+	FROM user_orders
 	WHERE userID = $1
 	`
 	rows, err := gdb.QueryContext(ctx, query, uid)
@@ -75,7 +75,7 @@ func (gdb *GophermartDB) SaveAccount(context.Context, core.Account) error {
 }
 
 func (gdb *GophermartDB) createTablesIfNotExist() error {
-	_, err := gdb.Exec(`CREATE TABLE IF NOT EXISTS public.orders (
+	_, err := gdb.Exec(`CREATE TABLE IF NOT EXISTS public.user_orders (
     											uid TEXT NOT NULL
      											orderNumber	INT NOT NULL, 
 												userID TEXT,
@@ -85,7 +85,7 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												PRIMARY KEY (uid)
 												);
 
-								CREATE TABLE IF NOT EXISTS public.withdrawals (
+								CREATE TABLE IF NOT EXISTS public.user_withdrawals (
 								    			uid TEXT NOT NULL
      											orderNumber	INT NOT NULL, 
 												userID TEXT,
