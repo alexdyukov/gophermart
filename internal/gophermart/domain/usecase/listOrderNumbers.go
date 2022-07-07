@@ -10,7 +10,7 @@ import (
 // Делала BeOl
 ////1- GetOrders GET /api/user/orders — получение списка загруженных пользователем номеров заказов, статусов их обработки и информации о начислениях;
 type ListOrderNumsRepository interface {
-	GetOrdersByUser(context.Context, string) ([]core.OrderNumber, error)
+	GetOrdersByUser(context.Context, string) ([]core.UserOrderNumber, error)
 }
 
 type ListOrderNumsInputPort interface {
@@ -31,7 +31,7 @@ type ListOrderNums struct {
 // func NewListOrderNums ...
 
 type ListOrderNumsDTO struct {
-	Number  string    `json:"number"`
+	Number  int       `json:"number"`
 	Status  string    `json:"status"`
 	Accrual float32   `json:"accrual,omitempty"`
 	Data    time.Time `json:"-"`
@@ -49,7 +49,11 @@ func (l *ListOrderNums) Execute(ctx context.Context, user string) ([]ListOrderNu
 	lstOrdNumsDTO := make([]ListOrderNumsDTO, 0)
 
 	for _, order := range orders {
-		lstOrdNumsDTO = append(lstOrdNumsDTO, ListOrderNumsDTO{Number: order.Number, Status: order.Status.String(), Accrual: order.Accrual, Data: order.Data, DataStr: order.Data.Format(time.RFC3339)})
+		lstOrdNumsDTO = append(lstOrdNumsDTO, ListOrderNumsDTO{
+			Number: order.Number, Status: order.Status.String(),
+			Accrual: order.Accrual,
+			Data:    order.DateAndTime,
+			DataStr: order.DateAndTime.Format(time.RFC3339)})
 	}
 
 	sort.SliceStable(lstOrdNumsDTO, func(i, j int) bool {

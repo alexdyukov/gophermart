@@ -29,6 +29,9 @@ func main() {
 	defer cancel()
 
 	dataBase, err := postgres.OpenDB(appConf.DBConnect)
+	if err != nil {
+		log.Printf(err.Error())
+	}
 
 	if err != nil {
 		fmt.Println("ошибка при открытии БД", err)
@@ -37,19 +40,26 @@ func main() {
 
 	defer func() { _ = dataBase.Close() }()
 
-	if err := postgres.InitSchema(ctx, dataBase); err != nil {
-		fmt.Println("ошибка при создании инициализации схемы", err)
+	gophermartStore, err := postgres.NewGophermartDB(dataBase)
+	if err != nil {
+		fmt.Println("ошибка при миграции БД", err)
+		return
 	}
-
-	gophermartStore := postgres.NewGophermartStore(dataBase)
 
 	// пробуем записать пользователя в таблицу
 	idUser := "057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b"
-	gophermartStore.SaveUser(ctx, "Oesya", "Olesya", idUser)
+	//	gophermartStore.SaveUser(ctx, "Oesya", "Olesya", idUser)
 
-	gophermartStore.SaveOrderTest(ctx, idUser, "9278923470", 500)
-	gophermartStore.SaveOrderTest(ctx, idUser, "12345678903", 324.82)
-
+	err = gophermartStore.SaveOrderTest(ctx, idUser, 9278923470, 500)
+	if err != nil {
+		fmt.Println("ошибка при записи заказа ", err)
+		return
+	}
+	err = gophermartStore.SaveOrderTest(ctx, idUser, 12345678903, 324.82)
+	if err != nil {
+		fmt.Println("ошибка при записи заказа ", err)
+		return
+	}
 	//}
 
 	// Authentication handlers

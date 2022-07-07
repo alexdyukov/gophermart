@@ -5,20 +5,22 @@ import (
 	"time"
 )
 
-// Move this to accrual ??
-
-type OrderNumber struct {
-	Id      string
-	User    string // owner
-	Number  string
-	Status  sharedkernel.Status
-	Accrual float32 // было int, мне кажется лучше сделать дробным
-	Data    time.Time
+// UserOrderNumber is now represent users registered order.
+type UserOrderNumber struct {
+	Id          string
+	User        string
+	Status      sharedkernel.Status
+	Number      int
+	Accrual     float32
+	DateAndTime time.Time
 }
 
-func NewOrderNumber(number int) OrderNumber {
-	return OrderNumber{
-		Status: sharedkernel.NEW,
-		// ...
+func NewOrderNumber(number int, accrual float32, userID string, status sharedkernel.Status) UserOrderNumber {
+	return UserOrderNumber{
+		Id:      sharedkernel.NewUUID(),
+		User:    userID,
+		Number:  number,
+		Status:  status,
+		Accrual: accrual,
 	}
 }

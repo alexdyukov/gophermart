@@ -1,9 +1,12 @@
 package usecase
 
-import "github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+import (
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
+)
 
 type LoadOrderNumberRepository interface {
-	SaveOrderNumber(core.OrderNumber) error
+	SaveOrderNumber(core.UserOrderNumber) error
 }
 
 type LoadOrderNumberInputPort interface {
@@ -22,7 +25,7 @@ type LoadOrderNumber struct {
 
 func (l LoadOrderNumber) Execute(number int) error {
 	// do work...
-	orderNumber := core.NewOrderNumber(number)
+	orderNumber := core.NewOrderNumber(number, 33333, "werwerwer", sharedkernel.NEW)
 	l.Repo.SaveOrderNumber(orderNumber)
 	return nil
 }
