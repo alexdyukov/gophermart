@@ -3,13 +3,11 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"log"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type GophermartDB struct {
@@ -35,16 +33,16 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, _ string) ([]core.Us
 	return nil, nil
 }
 
-// retrieve User's account from database and construct it with core.RestoreAccount
+// nolint:funlen // ok
 func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
-
+	// retrieve User's account from database and construct it with core.RestoreAccount
 	var ( // для сохранения чтобы потом передать в функции
 		order           int
 		amount, accrual sharedkernel.Money
 		operationTime   time.Time
 	)
 
-	stmt, err := gdb.PrepareContext(ctx, `SELECT accrual FROM user_orders WHERE userID = $1 and status = $2`)
+	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual) FROM user_orders WHERE userID = $1 and status = $2`)
 	if err != nil {
 		return core.Account{}, err
 	}
@@ -57,16 +55,13 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	}()
 
 	err = stmt.QueryRowContext(ctx, userID, sharedkernel.PROCESSED).Scan(&accrual)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return core.Account{}, usecase.ErrBadCredentials
-		}
 
+	if err != nil {
 		return core.Account{}, err //nolint:wrapcheck  // ok
 	}
 
 	defer func() {
-		err := stmt.Close()
+		err = stmt.Close()
 		if err != nil {
 			log.Println(err)
 		}
@@ -92,7 +87,11 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 		if err != nil {
 			return *acc, err
 		}
-		acc.WithdrawPoints(order, amount, operationTime)
+
+		err = acc.WithdrawPoints(order, amount, operationTime)
+		if err != nil {
+			return *acc, err
+		}
 	}
 
 	return *acc, nil

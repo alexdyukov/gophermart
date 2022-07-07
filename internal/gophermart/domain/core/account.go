@@ -9,10 +9,10 @@ import (
 
 type (
 	AccountWithdrawals struct {
+		OperationTime time.Time
 		ID            string
 		OrderNumber   int
 		Amount        sharedkernel.Money
-		OperationTime time.Time
 	}
 
 	Account struct {
