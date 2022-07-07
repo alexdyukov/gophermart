@@ -46,7 +46,7 @@ func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) (
 
 	log.Println(orders)
 
-	lstOrdNumsDTO := make([]ListUserOrdersOutputDTO, len(orders))
+	lstOrdNumsDTO := make([]ListUserOrdersOutputDTO, 0)
 
 	for _, order := range orders {
 		lstOrdNumsDTO = append(lstOrdNumsDTO, ListUserOrdersOutputDTO{
