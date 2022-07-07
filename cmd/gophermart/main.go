@@ -20,7 +20,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-func main() {
+func main() { // nolint:funlen // ok
 	// Configure application
 	gophermartConf := config.NewGophermartConfig()
 	dbConnString := gophermartConf.DBConnect

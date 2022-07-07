@@ -5,9 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
-
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type GophermartDB struct {
@@ -54,6 +53,7 @@ func (gophBD *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]co
 	WHERE uid = $1
 	`
 	rows, err := gophBD.QueryContext(ctx, selectSQL, uid)
+	// only one cuddle assignment allowed before if statement for linter
 	if err != nil {
 		return rez, err
 	}
