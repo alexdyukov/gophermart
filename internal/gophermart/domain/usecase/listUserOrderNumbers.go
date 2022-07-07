@@ -21,7 +21,7 @@ type (
 	}
 
 	ListUserOrdersOutputDTO struct {
-		UploadedAt    time.Time          `json:"-"`           // nolint:tagliatelle // ok
+		UploadedAt    time.Time          `json:"-"`
 		UploadedAtStr string             `json:"uploaded_at"` // nolint:tagliatelle // ok
 		Number        string             `json:"number"`
 		Status        string             `json:"status"`

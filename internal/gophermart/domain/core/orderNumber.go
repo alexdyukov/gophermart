@@ -16,13 +16,12 @@ type UserOrderNumber struct {
 	Accrual     sharedkernel.Money
 }
 
-func NewOrderNumber(number int, accrual sharedkernel.Money, userID string, status sharedkernel.Status, datе time.Time) UserOrderNumber {
+func NewOrderNumber(num int, sum sharedkernel.Money, uID string, sts sharedkernel.Status) UserOrderNumber {
 	return UserOrderNumber{
-		ID:          sharedkernel.NewUUID(),
-		User:        userID,
-		Number:      number,
-		Status:      status,
-		Accrual:     accrual,
-		DateAndTime: datе,
+		ID:      sharedkernel.NewUUID(),
+		User:    uID,
+		Number:  num,
+		Status:  sts,
+		Accrual: sum,
 	}
 }

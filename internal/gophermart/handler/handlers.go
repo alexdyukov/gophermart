@@ -90,13 +90,13 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 		writer.WriteHeader(http.StatusOK) // 200 — успешная обработка запроса.
 
 		strJSON, err := json.Marshal(list)
-
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError) // 500 — внутренняя ошибка сервера
 
 			return
 		}
+
 		_, err = writer.Write(strJSON)
 
 		if err != nil {
