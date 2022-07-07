@@ -97,7 +97,7 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		_, err := showBalanceUsecase.Execute(request.Context(), user)
+		balance, err := showBalanceUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -105,7 +105,25 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
+		strJSON, err := json.Marshal(balance)
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError) // 500 — внутренняя ошибка сервера
+
+			return
+		}
+
+		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
+
+		_, err = writer.Write(strJSON)
+
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError) // 500 — внутренняя ошибка сервера
+
+			return
+		}
 	}
 }
 
