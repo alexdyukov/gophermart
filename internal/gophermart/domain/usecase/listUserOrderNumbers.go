@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"log"
-	"sort"
 	"strconv"
 	"time"
 
@@ -58,10 +57,6 @@ func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) (
 			UploadedAtStr: order.DateAndTime.Format(time.RFC3339),
 		})
 	}
-
-	sort.SliceStable(lstOrdNumsDTO, func(i, j int) bool {
-		return lstOrdNumsDTO[i].UploadedAt.Before(lstOrdNumsDTO[j].UploadedAt)
-	})
 
 	return lstOrdNumsDTO, nil
 }
