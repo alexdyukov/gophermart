@@ -38,6 +38,7 @@ func (gdb *GophermartDB) GetOrdersByUser(ctx context.Context, uid string) ([]cor
 	dateAndTime
 	FROM user_orders
 	WHERE userID = $1
+ 	ORDER BY dateAndTime
 	`
 	rows, err := gdb.QueryContext(ctx, query, uid)
 	// only one cuddle assignment allowed before if statement for linter
@@ -107,7 +108,7 @@ func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOr
 	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
 	`
 
-	_, err = gdb.ExecContext(ctx, insertSQL, sharedkernel.NewUUID(), numOrder, userId, sharedkernel.NEW, sum, time.Now())
+	_, err = gdb.ExecContext(ctx, insertSQL, sharedkernel.NewUUID(), numOrder, userId, sharedkernel.NEW, sum, time.Date(2018, time.May, 15, 17, 45, 12, 0, time.Local))
 
 	return err
 

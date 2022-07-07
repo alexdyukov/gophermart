@@ -50,16 +50,16 @@ func main() {
 	idUser := "057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b"
 	//	gophermartStore.SaveUser(ctx, "Oesya", "Olesya", idUser)
 
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 9278923470, 500)
+	err = gophermartStore.SaveOrderTest(ctx, idUser, 743578435, 500)
 	if err != nil {
 		fmt.Println("ошибка при записи заказа ", err)
 		return
 	}
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 12345678903, 324.82)
-	if err != nil {
-		fmt.Println("ошибка при записи заказа ", err)
-		return
-	}
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 12345678903, 324.82)
+	//if err != nil {
+	//	fmt.Println("ошибка при записи заказа ", err)
+	//	return
+	//}
 	//}
 
 	// Authentication handlers

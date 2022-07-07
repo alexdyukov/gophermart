@@ -23,7 +23,7 @@ func NewGophermartStore() *GophermartStore {
 	}
 }
 
-func (p *GophermartStore) GetOrdersByUser(_ context.Context, user string) ([]core.OrderNumber, error) {
+func (p *GophermartStore) GetOrdersByUser(_ context.Context, user string) ([]core.UserOrderNumber, error) {
 
 	mTest := make(map[int]OrderModel)
 
