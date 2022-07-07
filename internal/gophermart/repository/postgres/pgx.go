@@ -24,6 +24,7 @@ func (p *GophermartDB) FindAllOrders(ctx context.Context, _ string) ([]core.User
 }
 
 func (p *GophermartDB) FindAccountByID(ctx context.Context, _ string) (core.Account, error) {
+
 	// retrieve User's account from database and construct it with core.RestoreAccount
 	return core.Account{}, nil
 }
