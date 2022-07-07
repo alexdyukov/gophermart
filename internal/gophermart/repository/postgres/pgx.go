@@ -36,7 +36,9 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 	dateAndTime
 	FROM user_orders
 	WHERE userID = $1
+ 	ORDER BY dateAndTime
 	`
+
 	rows, err := gdb.QueryContext(ctx, query, uid)
 	// only one cuddle assignment allowed before if statement for linter
 	if err != nil {
