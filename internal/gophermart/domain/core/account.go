@@ -12,7 +12,7 @@ type (
 		ID            string
 		OrderNumber   int
 		Amount        sharedkernel.Money
-		OperationTime int64
+		OperationTime time.Time
 	}
 
 	Account struct {
@@ -57,7 +57,7 @@ func (acc *Account) Add(amount sharedkernel.Money) {
 }
 
 // WithdrawPoints is just a representation of core model functionality behavior.
-func (acc *Account) WithdrawPoints(order int, amount sharedkernel.Money) error {
+func (acc *Account) WithdrawPoints(order int, amount sharedkernel.Money, oTime time.Time) error {
 	if amount > acc.balance {
 		return ErrNotEnoughFunds
 	}
@@ -65,10 +65,10 @@ func (acc *Account) WithdrawPoints(order int, amount sharedkernel.Money) error {
 	with := AccountWithdrawals{
 		OrderNumber:   order,
 		Amount:        amount,
-		OperationTime: time.Now().Unix(),
+		OperationTime: oTime,
 	}
 
-	acc.balance = -amount
+	acc.balance -= amount
 	acc.withdrawHistory = append(acc.withdrawHistory, with)
 
 	return nil
