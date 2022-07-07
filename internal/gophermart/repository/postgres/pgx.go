@@ -76,8 +76,8 @@ func (gdb *GophermartDB) SaveAccount(context.Context, core.Account) error {
 
 func (gdb *GophermartDB) createTablesIfNotExist() error {
 	_, err := gdb.Exec(`CREATE TABLE IF NOT EXISTS public.user_orders (
-    											uid TEXT NOT NULL
-     											orderNumber	INT NOT NULL, 
+    											uid TEXT NOT NULL,
+     											orderNumber	bigint NOT NULL, 
 												userID TEXT,
 												status INT  NOT NULL,
 												accrual		numeric,
@@ -86,8 +86,8 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												);
 
 								CREATE TABLE IF NOT EXISTS public.user_withdrawals (
-								    			uid TEXT NOT NULL
-     											orderNumber	INT NOT NULL, 
+								    			uid TEXT NOT NULL,
+     											orderNumber	bigint NOT NULL, 
 												userID TEXT,
 												amount		numeric,
 												dateAndTime	timestamp,
