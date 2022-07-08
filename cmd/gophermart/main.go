@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/config"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
@@ -40,7 +41,7 @@ func main() { // nolint:funlen // ok
 		log.Fatal(err)
 	}
 
-	//authStore, err := authPostgres.NewAuthStore(conn)
+	// authStore, err := authPostgres.NewAuthStore(conn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,14 +62,14 @@ func main() { // nolint:funlen // ok
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
 
-	//var tokenTTL int64 = 3600 * 24 // to config
-	//jwtGateway := token.NewAuthJWTGateway(tokenTTL, []byte("secret"))
-	//appRouter.Post("/api/user/register", authHandler.RegisterPostHandler(
+	// var tokenTTL int64 = 3600 * 24 // to config
+	// jwtGateway := token.NewAuthJWTGateway(tokenTTL, []byte("secret"))
+	// appRouter.Post("/api/user/register", authHandler.RegisterPostHandler(
 	//	authUsecase.NewRegisterUser(authStore, jwtGateway)))
-	//appRouter.Post("/api/user/login", authHandler.LoginPostHandler(authUsecase.NewLoginUser(authStore, jwtGateway)))
+	// appRouter.Post("/api/user/login", authHandler.LoginPostHandler(authUsecase.NewLoginUser(authStore, jwtGateway)))
 
 	appRouter.Group(func(subRouter chi.Router) {
-		//subRouter.Use(appMiddleware.Authentication(jwtGateway))
+		// subRouter.Use(appMiddleware.Authentication(jwtGateway))
 		subRouter.Post("/api/user/orders", handler.RegisterUserOrderPostHandler(
 			usecase.NewLoadOrderNumber(gophermartStore, accrualGateway)))
 		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(usecase.NewListUserOrders(gophermartStore)))

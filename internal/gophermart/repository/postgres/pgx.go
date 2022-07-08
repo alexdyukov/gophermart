@@ -77,7 +77,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 		amount, accrual sharedkernel.Money
 		operationTime   time.Time
 	)
-	//stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual) FROM user_orders WHERE userID = $1`)
+	// stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual) FROM user_orders WHERE userID = $1`)
 	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual) FROM user_orders WHERE userID = $1 and status = $2`)
 	if err != nil {
 		return core.Account{}, err
@@ -91,7 +91,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	}()
 
 	err = stmt.QueryRowContext(ctx, userID, sharedkernel.PROCESSED).Scan(&accrual)
-	//err = stmt.QueryRowContext(ctx, userID).Scan(&accrual)
+	// err = stmt.QueryRowContext(ctx, userID).Scan(&accrual)
 	if err != nil {
 		return core.Account{}, err //nolint:wrapcheck  // ok
 	}

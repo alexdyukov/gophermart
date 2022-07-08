@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"time"
+
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOrder int, sum float32, status sharedkernel.Status, date time.Time) error {
-
 	exists, err := orderExists(ctx, gdb.DB, numOrder)
 	if err != nil || exists {
 		return err
@@ -23,7 +23,6 @@ func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOr
 	_, err = gdb.ExecContext(ctx, insertSQL, sharedkernel.NewUUID(), numOrder, userId, status, sum, date)
 
 	return err
-
 }
 
 // userExists looks up a user by ID.
