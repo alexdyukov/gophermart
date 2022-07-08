@@ -73,9 +73,10 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
 	// retrieve User's account from database and construct it with core.RestoreAccount
 	var ( // для сохранения чтобы потом передать в функции
-		order           int
+		orderNumber     int
 		amount, accrual sharedkernel.Money
 		operationTime   time.Time
+		idWithdrawal    string
 	)
 
 	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual) FROM user_orders WHERE userID = $1 and status = $2`)
@@ -103,32 +104,32 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 		}
 	}()
 
-	acc := core.RestoreAccount(sharedkernel.NewUUID(), userID, accrual)
-
 	// Withdrawals --------
 	stmt, err = gdb.PrepareContext(ctx,
-		`SELECT orderNumber, amount, dateAndTime FROM user_withdrawals WHERE userID = $1 ORDER BY dateAndTime`)
+		`SELECT uid, orderNumber, amount, dateAndTime FROM user_withdrawals WHERE userID = $1 ORDER BY dateAndTime`)
 	if err != nil {
-		return *acc, err
+		return core.Account{}, err
 	}
 
 	rows, err := stmt.QueryContext(ctx, userID)
 	if err != nil {
-		return *acc, err
+		return core.Account{}, err
 	}
 	defer rows.Close()
 
+	withdrawalsHistory := make([]core.AccountWithdrawals, 0)
+
 	for rows.Next() {
-		err = rows.Scan(&order, &amount, &operationTime)
+		err = rows.Scan(&idWithdrawal, &orderNumber, &amount, &operationTime)
 		if err != nil {
-			return *acc, err
+			return core.Account{}, err
 		}
 
-		err = acc.WithdrawPoints(order, amount, operationTime)
-		if err != nil {
-			return *acc, err
-		}
+		accountWithdrawals := core.RestoreAccountWithdrawals(operationTime, idWithdrawal, orderNumber, amount)
+		withdrawalsHistory = append(withdrawalsHistory, *accountWithdrawals)
 	}
+
+	acc := core.RestoreAccount(sharedkernel.NewUUID(), userID, accrual, withdrawalsHistory)
 
 	return *acc, nil
 }
