@@ -86,9 +86,6 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 			return
 		}
 
-		writer.Header().Set("Content-Type", "application/json")
-		writer.WriteHeader(http.StatusOK) // 200 — успешная обработка запроса.
-
 		strJSON, err := json.Marshal(list)
 		if err != nil {
 			log.Println(err)
@@ -97,11 +94,12 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 			return
 		}
 
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK) // 200 — успешная обработка запроса.
 		_, err = writer.Write(strJSON)
 
 		if err != nil {
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError) // 500 — внутренняя ошибка сервера
 
 			return
 		}

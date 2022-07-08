@@ -3,7 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
+	"github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 )
 
@@ -51,6 +53,10 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 	for rows.Next() {
 		err = rows.Scan(&ord.ID, &ord.Number, &ord.Status, &ord.Accrual, &ord.DateAndTime)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, usecase.ErrBadCredentials
+			}
+
 			return nil, err
 		}
 
