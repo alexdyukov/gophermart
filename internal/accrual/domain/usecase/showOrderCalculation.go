@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"log"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
@@ -38,26 +37,20 @@ func NewShowOrderCalculation(repo ShowOrderCalculationRepository) *ShowOrderCalc
 	}
 }
 
-func (s *ShowOrderCalculation) Execute(ctx context.Context, number string) (*ShowOrderCalculationOutputDTO, error) {
+func (show *ShowOrderCalculation) Execute(ctx context.Context, number string) (*ShowOrderCalculationOutputDTO, error) {
 	if !sharedkernel.ValidLuhn(number) {
 		return nil, ErrIncorrectOrderNumber
 	}
-
-	log.Println("luhn gone")
 
 	orderNumber, err := strconv.ParseInt(number, 10, 64) // nolint:gomnd // ok
 	if err != nil {
 		return nil, ErrIncorrectOrderNumber
 	}
 
-	log.Println("number parced", orderNumber)
-
-	orderState, err := s.Repo.GetOrderByNumber(ctx, orderNumber)
+	orderState, err := show.Repo.GetOrderByNumber(ctx, orderNumber)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println("order state ", orderState)
 
 	output := ShowOrderCalculationOutputDTO{
 		Order:   strconv.FormatInt(orderState.OrderNumber, 10),

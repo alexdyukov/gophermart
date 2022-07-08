@@ -25,6 +25,7 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 
 				return
 			}
+
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -32,8 +33,8 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 
 		result, err := json.Marshal(output)
 		if err != nil {
-			log.Println("marshall error", err)
 			writer.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
 
@@ -88,6 +89,7 @@ func RegisterOrderPostHandler(
 
 				return
 			}
+
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return

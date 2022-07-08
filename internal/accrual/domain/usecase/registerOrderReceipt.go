@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"log"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
@@ -43,13 +42,9 @@ func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrder
 func (reg *RegisterOrderReceipt) Execute(
 	ctx context.Context, dto *RegisterOrderReceiptInputDTO,
 ) (*core.OrderReceipt, error) { // nolint:whitespace // ok
-
 	if !sharedkernel.ValidLuhn(dto.OrderNumber) {
 		return nil, ErrIncorrectOrderNumber
 	}
-
-	//num := strconv.FormatInt(dto.OrderNumber, 10)
-	//fmt.Println(num)
 
 	number, err := strconv.ParseInt(dto.OrderNumber, 10, 64) // nolint:gomnd // ok
 	if err != nil {
@@ -57,8 +52,6 @@ func (reg *RegisterOrderReceipt) Execute(
 	}
 
 	orderReceipt := core.NewOrderReceipt(number, dto.Goods)
-
-	log.Println("register order log", dto.Goods)
 
 	err = reg.repo.SaveOrderReceipt(ctx, orderReceipt)
 	if err != nil {
