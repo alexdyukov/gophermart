@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
@@ -19,10 +20,11 @@ type (
 	}
 
 	ListUserOrdersOutputDTO struct {
-		UploadedAt time.Time `json:"uploaded_at"` // nolint:tagliatelle // ok
-		Number     string    `json:"number"`
-		Status     string    `json:"status"`
-		Accrual    int       `json:"accrual"`
+		UploadedAt    time.Time          `json:"-"`
+		UploadedAtStr string             `json:"uploaded_at"` // nolint:tagliatelle // ok
+		Number        string             `json:"number"`
+		Status        string             `json:"status"`
+		Accrual       sharedkernel.Money `json:"accrual"`
 	}
 
 	ListUserOrders struct {
@@ -44,7 +46,17 @@ func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) (
 
 	log.Println(orders)
 
-	return []ListUserOrdersOutputDTO{
-		{},
-	}, nil
+	lstOrdNumsDTO := make([]ListUserOrdersOutputDTO, 0, len(orders))
+
+	for _, order := range orders {
+		lstOrdNumsDTO = append(lstOrdNumsDTO, ListUserOrdersOutputDTO{
+			Number:        strconv.Itoa(order.Number),
+			Status:        order.Status.String(),
+			Accrual:       order.Accrual,
+			UploadedAt:    order.DateAndTime,
+			UploadedAtStr: order.DateAndTime.Format(time.RFC3339),
+		})
+	}
+
+	return lstOrdNumsDTO, nil
 }

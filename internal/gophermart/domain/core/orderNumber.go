@@ -1,22 +1,27 @@
 package core
 
-import "github.com/alexdyukov/gophermart/internal/sharedkernel"
+import (
+	"time"
+
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
+)
 
 // UserOrderNumber is now represent users registered order.
 type UserOrderNumber struct {
-	id      string
-	user    string
-	status  sharedkernel.Status
-	number  int
-	accrual int
+	DateAndTime time.Time
+	ID          string
+	User        string
+	Status      sharedkernel.Status
+	Number      int
+	Accrual     sharedkernel.Money
 }
 
-func NewOrderNumber(number, accrual int, userID string, status sharedkernel.Status) UserOrderNumber {
+func NewOrderNumber(num int, sum sharedkernel.Money, uID string, sts sharedkernel.Status) UserOrderNumber {
 	return UserOrderNumber{
-		id:      sharedkernel.NewUUID(),
-		user:    userID,
-		number:  number,
-		status:  status,
-		accrual: accrual,
+		ID:      sharedkernel.NewUUID(),
+		User:    uID,
+		Number:  num,
+		Status:  sts,
+		Accrual: sum,
 	}
 }

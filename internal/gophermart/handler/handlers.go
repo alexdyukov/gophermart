@@ -72,15 +72,37 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 			return
 		}
 
-		_, err := listUserOrdersUsecase.Execute(request.Context(), user)
+		list, err := listUserOrdersUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError)
+			writer.WriteHeader(http.StatusInternalServerError) // 500 — внутренняя ошибка сервера
 
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		if len(list) == 0 {
+			writer.WriteHeader(http.StatusNoContent) // 204 — нет данных для ответа.
+
+			return
+		}
+
+		strJSON, err := json.Marshal(list)
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError) // 500 — внутренняя ошибка сервера
+
+			return
+		}
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK) // 200 — успешная обработка запроса.
+		_, err = writer.Write(strJSON)
+
+		if err != nil {
+			log.Println(err)
+
+			return
+		}
 	}
 }
 

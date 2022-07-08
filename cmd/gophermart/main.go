@@ -20,7 +20,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-func main() {
+func main() { // nolint:funlen // ok
 	// Configure application
 	gophermartConf := config.NewGophermartConfig()
 	dbConnString := gophermartConf.DBConnect
@@ -36,7 +36,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	gophermartStore := postgres.NewGophermartDB(conn)
+	gophermartStore, err := postgres.NewGophermartDB(conn)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	authStore, err := authPostgres.NewAuthStore(conn)
 	if err != nil {
