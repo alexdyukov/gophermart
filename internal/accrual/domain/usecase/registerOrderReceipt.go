@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 )
@@ -12,12 +14,12 @@ type (
 	}
 
 	RegisterOrderReceiptPrimaryPort interface {
-		Execute(context.Context, RegisterOrderReceiptInputDTO) error
+		Execute(context.Context, *RegisterOrderReceiptInputDTO) (*core.OrderReceipt, error)
 	}
 
 	RegisterOrderReceiptInputDTO struct {
+		OrderNumber string         `json:"order"`
 		Goods       []core.Product `json:"goods"`
-		OrderNumber int            `json:"order"`
 	}
 
 	RegisterOrderReceipt struct {
@@ -25,21 +27,30 @@ type (
 	}
 )
 
+var ErrOrderAlreadyExist = errors.New("error order number already exists")
+
 func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrderReceipt {
 	return &RegisterOrderReceipt{
 		repo: repo,
 	}
 }
 
-func (c *RegisterOrderReceipt) Execute(ctx context.Context, dto RegisterOrderReceiptInputDTO) error {
-	orderReceipt := core.NewOrderReceipt(dto.OrderNumber, dto.Goods)
-
-	err := c.repo.SaveOrderReceipt(ctx, orderReceipt)
+func (reg *RegisterOrderReceipt) Execute(
+	ctx context.Context, dto *RegisterOrderReceiptInputDTO,
+) (*core.OrderReceipt, error) { // nolint:whitespace // ok
+	number, err := strconv.Atoi(dto.OrderNumber)
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	orderReceipt := core.NewOrderReceipt(number, dto.Goods)
+
+	err = reg.repo.SaveOrderReceipt(ctx, orderReceipt)
+	if err != nil {
+		return nil, err
 	}
 
 	// start sync or async calculation...
 
-	return nil
+	return orderReceipt, nil
 }

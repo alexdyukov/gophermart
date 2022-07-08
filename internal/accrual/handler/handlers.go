@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -52,7 +53,10 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 // 400 — неверный формат запроса;
 // 409 — заказ уже принят в обработку;
 // 500 — внутренняя ошибка сервера.
-func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrderReceiptPrimaryPort) http.HandlerFunc {
+func RegisterOrderPostHandler(
+	registerPurchasedOrderUsecase usecase.RegisterOrderReceiptPrimaryPort,
+	calculateRewardUsecase usecase.CalculateRewardPrimaryPort,
+) http.HandlerFunc { // nolint:whitespace // ok
 	return func(writer http.ResponseWriter, request *http.Request) {
 		bytes, err := io.ReadAll(request.Body)
 		if err != nil {
@@ -65,15 +69,23 @@ func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrde
 
 		err = json.Unmarshal(bytes, &orderReceiptDTO)
 		if err != nil {
+			log.Println(err)
 			writer.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
-		err = registerPurchasedOrderUsecase.Execute(request.Context(), orderReceiptDTO)
+		orderReceipt, err := registerPurchasedOrderUsecase.Execute(request.Context(), &orderReceiptDTO)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		err = calculateRewardUsecase.Execute(request.Context(), orderReceipt)
+		if err != nil {
+			log.Println(err)
 		}
 
 		writer.WriteHeader(http.StatusOK)
@@ -87,15 +99,35 @@ func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrde
 // 500 — внутренняя ошибка сервера.
 func RegisterMechanicPostHandler(registerRewardUsecase usecase.RegisterRewardMechanicPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		input := usecase.RegisterRewardMechanicInputDTO{}
-
-		err := registerRewardUsecase.Execute(request.Context(), &input)
+		bytes, err := io.ReadAll(request.Body)
 		if err != nil {
-			log.Println(err)
+			writer.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		registerRewardInputDTO := usecase.RegisterRewardMechanicInputDTO{}
+
+		err = json.Unmarshal(bytes, &registerRewardInputDTO)
+		if err != nil {
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		err = registerRewardUsecase.Execute(request.Context(), &registerRewardInputDTO)
+		if err != nil {
+			if errors.Is(err, usecase.ErrRewardAlreadyExists) {
+				writer.WriteHeader(http.StatusConflict)
+
+				return
+			}
+
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		writer.WriteHeader(http.StatusAccepted)
 	}
 }

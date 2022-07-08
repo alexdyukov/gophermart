@@ -1,6 +1,8 @@
 package core
 
 import (
+	"time"
+
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
@@ -8,13 +10,14 @@ type (
 	// Product should not contain any tags, violate restrictions
 	// for sake of simplicity as this is study project.
 	Product struct {
+		Match       string
 		Description string             `json:"description"`
 		Price       sharedkernel.Money `json:"price"`
 	}
 
 	OrderReceipt struct {
 		Goods       []Product
-		Accrual     int
+		Accrual     sharedkernel.Money
 		OrderNumber int
 		Status      sharedkernel.Status
 	}
@@ -31,6 +34,23 @@ func NewOrderReceipt(number int, goods []Product) *OrderReceipt {
 	return &order
 }
 
-func (o *OrderReceipt) CalculateRewardPoints(rewards []Reward) {
-	// Temporary here. Chances are will move into separate domain entity
+func (ord *OrderReceipt) CalculateRewardPoints(rewards map[string]Reward) {
+	time.Sleep(time.Second * 4) // nolint:gomnd // temp sleep
+
+	points := sharedkernel.Money(0)
+
+	for _, v := range ord.Goods {
+		rew := rewards[v.Match]
+		if rew.isPercentage() {
+			percentPoints := (v.Price / 100) * rew.RewardPoints() // nolint:gomnd // percent number
+			points += percentPoints
+
+			continue
+		}
+
+		points += rew.RewardPoints()
+	}
+
+	ord.Accrual = points
+	ord.Status = sharedkernel.PROCESSED
 }
