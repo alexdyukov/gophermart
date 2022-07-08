@@ -34,6 +34,15 @@ func NewAccount(userID string) *Account {
 	}
 }
 
+func RestoreAccountWithdrawals(oTm time.Time, uid string, num int, sum sharedkernel.Money) *AccountWithdrawals {
+	return &AccountWithdrawals{
+		OperationTime: oTm,
+		ID:            uid,
+		OrderNumber:   num,
+		Amount:        sum,
+	}
+}
+
 func RestoreAccount(id, userID string, balance sharedkernel.Money, wHistory []AccountWithdrawals) *Account {
 	return &Account{
 		id:              id,
