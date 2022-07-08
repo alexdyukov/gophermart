@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"log"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
@@ -56,6 +57,8 @@ func (reg *RegisterOrderReceipt) Execute(
 	}
 
 	orderReceipt := core.NewOrderReceipt(number, dto.Goods)
+
+	log.Println("register order log", dto.Goods)
 
 	err = reg.repo.SaveOrderReceipt(ctx, orderReceipt)
 	if err != nil {

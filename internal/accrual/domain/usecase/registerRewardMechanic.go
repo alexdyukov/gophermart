@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
@@ -50,6 +51,8 @@ func (reg *RegisterRewardMechanic) Execute(ctx context.Context, dto *RegisterRew
 	if err != nil {
 		return err
 	}
+
+	log.Println("reward log dto", dto)
 
 	err = reg.Repo.SaveRewardMechanic(ctx, reward)
 	if err != nil {
