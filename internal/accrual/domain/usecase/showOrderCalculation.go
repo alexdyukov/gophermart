@@ -21,7 +21,7 @@ type (
 
 	ShowOrderCalculationOutputDTO struct {
 		Status  string             `json:"status"`
-		Order   int64              `json:"order"`
+		Order   string             `json:"order"`
 		Accrual sharedkernel.Money `json:"accrual"`
 	}
 
@@ -60,7 +60,7 @@ func (s *ShowOrderCalculation) Execute(ctx context.Context, number string) (*Sho
 	log.Println("order state ", orderState)
 
 	output := ShowOrderCalculationOutputDTO{
-		Order:   orderState.OrderNumber,
+		Order:   strconv.FormatInt(orderState.OrderNumber, 10),
 		Status:  orderState.Status.String(),
 		Accrual: orderState.Accrual,
 	}
