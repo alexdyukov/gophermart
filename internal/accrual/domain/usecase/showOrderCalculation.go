@@ -2,23 +2,26 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type (
 	ShowOrderCalculationRepository interface {
-		GetOrderByNumber(context.Context, int) (core.OrderReceipt, error)
+		GetOrderByNumber(context.Context, int64) (*core.OrderReceipt, error)
 	}
 
 	ShowOrderCalculationPrimaryPort interface {
-		Execute(context.Context, int) (*ShowOrderCalculationOutputDTO, error)
+		Execute(context.Context, string) (*ShowOrderCalculationOutputDTO, error)
 	}
 
 	ShowOrderCalculationOutputDTO struct {
-		Status  string `json:"status"`
-		Order   int    `json:"order"`
-		Accrual int    `json:"accrual"`
+		Status  string             `json:"status"`
+		Order   string             `json:"order"`
+		Accrual sharedkernel.Money `json:"accrual"`
 	}
 
 	ShowOrderCalculation struct {
@@ -26,20 +29,31 @@ type (
 	}
 )
 
+var ErrOrderReceiptNotExist = errors.New("order receipt does not exist")
+
 func NewShowOrderCalculation(repo ShowOrderCalculationRepository) *ShowOrderCalculation {
 	return &ShowOrderCalculation{
 		Repo: repo,
 	}
 }
 
-func (s *ShowOrderCalculation) Execute(ctx context.Context, number int) (*ShowOrderCalculationOutputDTO, error) {
-	orderState, err := s.Repo.GetOrderByNumber(ctx, number)
+func (show *ShowOrderCalculation) Execute(ctx context.Context, number string) (*ShowOrderCalculationOutputDTO, error) {
+	if !sharedkernel.ValidLuhn(number) {
+		return nil, ErrIncorrectOrderNumber
+	}
+
+	orderNumber, err := strconv.ParseInt(number, 10, 64) // nolint:gomnd // ok
 	if err != nil {
-		return nil, err //nolint:wrapcheck // ok
+		return nil, ErrIncorrectOrderNumber
+	}
+
+	orderState, err := show.Repo.GetOrderByNumber(ctx, orderNumber)
+	if err != nil {
+		return nil, err
 	}
 
 	output := ShowOrderCalculationOutputDTO{
-		Order:   orderState.OrderNumber,
+		Order:   strconv.FormatInt(orderState.OrderNumber, 10),
 		Status:  orderState.Status.String(),
 		Accrual: orderState.Accrual,
 	}

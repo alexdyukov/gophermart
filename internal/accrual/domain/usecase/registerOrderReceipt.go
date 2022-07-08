@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type (
@@ -12,17 +15,22 @@ type (
 	}
 
 	RegisterOrderReceiptPrimaryPort interface {
-		Execute(context.Context, RegisterOrderReceiptInputDTO) error
+		Execute(context.Context, *RegisterOrderReceiptInputDTO) (*core.OrderReceipt, error)
 	}
 
 	RegisterOrderReceiptInputDTO struct {
+		OrderNumber string         `json:"order"`
 		Goods       []core.Product `json:"goods"`
-		OrderNumber int            `json:"order"`
 	}
 
 	RegisterOrderReceipt struct {
 		repo RegisterOrderReceiptRepository
 	}
+)
+
+var (
+	ErrOrderAlreadyExist    = errors.New("error order number already exists")
+	ErrIncorrectOrderNumber = errors.New("order number is incorrect")
 )
 
 func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrderReceipt {
@@ -31,15 +39,26 @@ func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrder
 	}
 }
 
-func (c *RegisterOrderReceipt) Execute(ctx context.Context, dto RegisterOrderReceiptInputDTO) error {
-	orderReceipt := core.NewOrderReceipt(dto.OrderNumber, dto.Goods)
+func (reg *RegisterOrderReceipt) Execute(
+	ctx context.Context, dto *RegisterOrderReceiptInputDTO,
+) (*core.OrderReceipt, error) { // nolint:whitespace // ok
+	if !sharedkernel.ValidLuhn(dto.OrderNumber) {
+		return nil, ErrIncorrectOrderNumber
+	}
 
-	err := c.repo.SaveOrderReceipt(ctx, orderReceipt)
+	number, err := strconv.ParseInt(dto.OrderNumber, 10, 64) // nolint:gomnd // ok
 	if err != nil {
-		return err
+		return nil, ErrIncorrectOrderNumber
+	}
+
+	orderReceipt := core.NewOrderReceipt(number, dto.Goods)
+
+	err = reg.repo.SaveOrderReceipt(ctx, orderReceipt)
+	if err != nil {
+		return nil, err
 	}
 
 	// start sync or async calculation...
 
-	return nil
+	return orderReceipt, nil
 }

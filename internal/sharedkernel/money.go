@@ -1,3 +1,3 @@
 package sharedkernel
 
-type Money float32
+type Money float64
