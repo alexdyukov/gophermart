@@ -142,7 +142,6 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 
 		if err != nil {
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError) // 500 — внутренняя ошибка сервера
 
 			return
 		}
