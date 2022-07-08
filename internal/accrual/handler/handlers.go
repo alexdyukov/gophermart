@@ -68,7 +68,7 @@ func RegisterOrderPostHandler(
 
 		err = json.Unmarshal(bytes, &orderReceiptDTO)
 		if err != nil {
-			log.Println(err)
+			log.Println("cant unmarshal", err)
 			writer.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -77,6 +77,7 @@ func RegisterOrderPostHandler(
 		orderReceipt, err := registerPurchasedOrderUsecase.Execute(request.Context(), &orderReceiptDTO)
 		if err != nil {
 			if errors.Is(err, usecase.ErrIncorrectOrderNumber) {
+				log.Println("incorrect order number", err)
 				writer.WriteHeader(http.StatusBadRequest)
 
 				return
