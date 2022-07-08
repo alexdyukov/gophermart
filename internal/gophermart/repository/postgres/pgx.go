@@ -3,11 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"log"
-	"time"
+	"errors"
 
+	"github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type GophermartDB struct {
@@ -27,74 +26,49 @@ func NewGophermartDB(conn *sql.DB) (*GophermartDB, error) {
 	return &dataBase, nil
 }
 
-func (gdb *GophermartDB) FindAllOrders(ctx context.Context, _ string) ([]core.UserOrderNumber, error) {
-	// retrieve from database all user's order numbers with batched query
-	// and construct list of entities
-	return nil, nil
-}
+func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.UserOrderNumber, error) {
+	result := make([]core.UserOrderNumber, 0)
 
-// nolint:funlen // ok
-func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
-	// retrieve User's account from database and construct it with core.RestoreAccount
-	var ( // для сохранения чтобы потом передать в функции
-		order           int
-		amount, accrual sharedkernel.Money
-		operationTime   time.Time
-	)
+	query := `
+	SELECT
+	uid,
+	orderNumber,
+	status,
+	accrual,
+	dateAndTime
+	FROM user_orders
+	WHERE userID = $1
+ 	ORDER BY dateAndTime
+	`
 
-	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual) FROM user_orders WHERE userID = $1 and status = $2`)
+	rows, err := gdb.QueryContext(ctx, query, uid)
+	// only one cuddle assignment allowed before if statement for linter
 	if err != nil {
-		return core.Account{}, err
-	}
-
-	defer func() {
-		err = stmt.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
-	err = stmt.QueryRowContext(ctx, userID, sharedkernel.PROCESSED).Scan(&accrual)
-
-	if err != nil {
-		return core.Account{}, err //nolint:wrapcheck  // ok
-	}
-
-	defer func() {
-		err = stmt.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
-	acc := core.RestoreAccount(sharedkernel.NewUUID(), userID, accrual)
-
-	// Withdrawals --------
-	stmt, err = gdb.PrepareContext(ctx,
-		`SELECT orderNumber, amount, dateAndTime FROM user_withdrawals WHERE userID = $1 ORDER BY dateAndTime`)
-	if err != nil {
-		return *acc, err
-	}
-
-	rows, err := stmt.QueryContext(ctx, userID)
-	if err != nil {
-		return *acc, err
+		return result, err
 	}
 	defer rows.Close()
 
+	ord := core.UserOrderNumber{}
+
 	for rows.Next() {
-		err = rows.Scan(&order, &amount, &operationTime)
+		err = rows.Scan(&ord.ID, &ord.Number, &ord.Status, &ord.Accrual, &ord.DateAndTime)
 		if err != nil {
-			return *acc, err
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, usecase.ErrBadCredentials
+			}
+
+			return nil, err
 		}
 
-		err = acc.WithdrawPoints(order, amount, operationTime)
-		if err != nil {
-			return *acc, err
-		}
+		result = append(result, ord)
 	}
 
-	return *acc, nil
+	return result, nil
+}
+
+func (gdb *GophermartDB) FindAccountByID(ctx context.Context, _ string) (core.Account, error) {
+	// retrieve User's account from database and construct it with core.RestoreAccount
+	return core.Account{}, nil
 }
 
 func (gdb *GophermartDB) SaveUserOrder(context.Context, core.UserOrderNumber) error {
