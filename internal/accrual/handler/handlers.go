@@ -80,6 +80,10 @@ func RegisterOrderPostHandler(
 
 				return
 			}
+
+			if errors.Is(err, usecase.ErrOrderAlreadyExist) {
+				writer.WriteHeader(http.StatusConflict)
+			}
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -90,7 +94,7 @@ func RegisterOrderPostHandler(
 			log.Println(err)
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		writer.WriteHeader(http.StatusAccepted)
 	}
 }
 
