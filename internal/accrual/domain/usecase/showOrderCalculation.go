@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"log"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
@@ -42,15 +43,21 @@ func (s *ShowOrderCalculation) Execute(ctx context.Context, number string) (*Sho
 		return nil, ErrIncorrectOrderNumber
 	}
 
+	log.Println("luhn gone")
+
 	orderNumber, err := strconv.ParseInt(number, 10, 64) // nolint:gomnd // ok
 	if err != nil {
 		return nil, ErrIncorrectOrderNumber
 	}
 
+	log.Println("number parced", orderNumber)
+
 	orderState, err := s.Repo.GetOrderByNumber(ctx, orderNumber)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println("order state ", orderState)
 
 	output := ShowOrderCalculationOutputDTO{
 		Order:   orderState.OrderNumber,

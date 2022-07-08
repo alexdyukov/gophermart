@@ -20,13 +20,11 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 
 		output, err := showOrderCalculationUsecase.Execute(request.Context(), number)
 		if err != nil {
-
 			if errors.Is(err, usecase.ErrIncorrectOrderNumber) {
 				writer.WriteHeader(http.StatusBadRequest)
 
 				return
 			}
-
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -34,7 +32,9 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 
 		result, err := json.Marshal(output)
 		if err != nil {
-			log.Println(err)
+			log.Println("marshall error", err)
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		writer.WriteHeader(http.StatusOK)

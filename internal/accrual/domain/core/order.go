@@ -35,7 +35,7 @@ func NewOrderReceipt(number int64, goods []Product) *OrderReceipt {
 }
 
 func (ord *OrderReceipt) CalculateRewardPoints(rewards map[string]Reward) {
-	time.Sleep(time.Second * 4) // nolint:gomnd // temp sleep
+	time.Sleep(time.Second * 1) // nolint:gomnd // temp sleep
 
 	points := sharedkernel.Money(0)
 
