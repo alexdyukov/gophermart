@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
@@ -19,7 +20,7 @@ type (
 	}
 
 	RegisterOrderReceiptInputDTO struct {
-		OrderNumber string         `json:"order"`
+		OrderNumber int64          `json:"order"`
 		Goods       []core.Product `json:"goods"`
 	}
 
@@ -42,18 +43,23 @@ func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrder
 func (reg *RegisterOrderReceipt) Execute(
 	ctx context.Context, dto *RegisterOrderReceiptInputDTO,
 ) (*core.OrderReceipt, error) { // nolint:whitespace // ok
-	if !sharedkernel.ValidLuhn(dto.OrderNumber) {
+	num := strconv.FormatInt(dto.OrderNumber, 10)
+
+	fmt.Println(num)
+
+	if !sharedkernel.ValidLuhn(num) {
+		fmt.Println("bad")
 		return nil, ErrIncorrectOrderNumber
 	}
 
-	number, err := strconv.ParseInt(dto.OrderNumber, 10, 64) // nolint:gomnd // ok
-	if err != nil {
-		return nil, ErrIncorrectOrderNumber
-	}
+	//number, err := strconv.ParseInt(dto.OrderNumber, 10, 64) // nolint:gomnd // ok
+	//if err != nil {
+	//	return nil, ErrIncorrectOrderNumber
+	//}
 
-	orderReceipt := core.NewOrderReceipt(number, dto.Goods)
+	orderReceipt := core.NewOrderReceipt(dto.OrderNumber, dto.Goods)
 
-	err = reg.repo.SaveOrderReceipt(ctx, orderReceipt)
+	err := reg.repo.SaveOrderReceipt(ctx, orderReceipt)
 	if err != nil {
 		return nil, err
 	}

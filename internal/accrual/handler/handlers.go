@@ -84,6 +84,8 @@ func RegisterOrderPostHandler(
 
 			if errors.Is(err, usecase.ErrOrderAlreadyExist) {
 				writer.WriteHeader(http.StatusConflict)
+
+				return
 			}
 			writer.WriteHeader(http.StatusInternalServerError)
 
