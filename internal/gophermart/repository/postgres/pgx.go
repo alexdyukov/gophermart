@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"log"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type GophermartDB struct {
@@ -69,6 +69,7 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 	return result, nil
 }
 
+// nolint:funlen // ok
 func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
 	// retrieve User's account from database and construct it with core.RestoreAccount
 	var ( // для сохранения чтобы потом передать в функции
@@ -130,7 +131,6 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	}
 
 	return *acc, nil
-
 }
 
 func (gdb *GophermartDB) SaveUserOrder(context.Context, core.UserOrderNumber) error {
