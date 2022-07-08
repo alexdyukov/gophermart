@@ -251,6 +251,11 @@ func (accdb *AccrualDB) GetOrderByNumberWithGoods( // nolint:funlen,cyclop // ok
 		products = append(products, product)
 	}
 
+	err = productRows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	orderReceipt.Goods = products
 
 	err = transaction.Commit()

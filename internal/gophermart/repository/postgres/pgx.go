@@ -63,6 +63,11 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 		result = append(result, ord)
 	}
 
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return result, nil
 }
 

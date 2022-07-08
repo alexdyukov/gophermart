@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
@@ -42,12 +43,16 @@ func (ord *OrderReceipt) CalculateRewardPoints(rewards map[string]Reward) {
 	for _, v := range ord.Goods {
 		rew := rewards[v.Match]
 		if rew.isPercentage() {
+
 			percentPoints := (v.Price / 100) * rew.RewardPoints() // nolint:gomnd // percent number
+			fmt.Println("PERCENT reward points->", percentPoints)
+
 			points += percentPoints
 
 			continue
 		}
 
+		fmt.Println("PT reward points->", rew.RewardPoints(), rew.Match())
 		points += rew.RewardPoints()
 	}
 
