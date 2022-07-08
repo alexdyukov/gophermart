@@ -11,7 +11,7 @@ import (
 
 type (
 	CalculationRewardRepository interface {
-		GetOrderByNumberWithGoods(context.Context, int) (*core.OrderReceipt, error)
+		GetOrderByNumberWithGoods(context.Context, int64) (*core.OrderReceipt, error)
 		FindAllRewardMechanicsByTokens(context.Context, ...string) (map[string]core.Reward, error)
 		UpdateReceiptOrderState(context.Context, *core.OrderReceipt) error
 	}

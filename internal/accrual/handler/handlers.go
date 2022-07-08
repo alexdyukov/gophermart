@@ -19,7 +19,7 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 	return func(writer http.ResponseWriter, request *http.Request) {
 		n := chi.URLParam(request, "number")
 
-		number, err := strconv.Atoi(n)
+		number, err := strconv.ParseInt(n, 10, 64)
 		if err != nil {
 			writer.WriteHeader(http.StatusBadRequest)
 
@@ -128,6 +128,6 @@ func RegisterMechanicPostHandler(registerRewardUsecase usecase.RegisterRewardMec
 			return
 		}
 
-		writer.WriteHeader(http.StatusAccepted)
+		writer.WriteHeader(http.StatusOK)
 	}
 }

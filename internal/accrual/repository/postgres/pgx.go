@@ -126,7 +126,7 @@ func (accdb *AccrualDB) SaveRewardMechanic(ctx context.Context, reward *core.Rew
 	return nil
 }
 
-func (accdb *AccrualDB) GetOrderByNumber(ctx context.Context, number int) (*core.OrderReceipt, error) {
+func (accdb *AccrualDB) GetOrderByNumber(ctx context.Context, number int64) (*core.OrderReceipt, error) {
 	orderStmt, err := accdb.PrepareContext(ctx, `SELECT
 											   order_number_id,
 											   accrual,
@@ -170,7 +170,7 @@ func (accdb *AccrualDB) GetOrderByNumber(ctx context.Context, number int) (*core
 
 // nolint:gocognit // ok
 func (accdb *AccrualDB) GetOrderByNumberWithGoods( // nolint:funlen,cyclop // ok
-	ctx context.Context, number int,
+	ctx context.Context, number int64,
 ) (*core.OrderReceipt, error) { // nolint:whitespace // ok
 	transaction, err := accdb.Begin()
 	if err != nil {
@@ -358,14 +358,14 @@ func (accdb *AccrualDB) UpdateReceiptOrderState(ctx context.Context, orderReceip
 
 func (accdb *AccrualDB) createUserTableIfNotExist() error {
 	_, err := accdb.Exec(`CREATE TABLE IF NOT EXISTS public.accrual_orders (
-	                       order_number_id INT NOT NULL,
+	                       order_number_id BIGINT NOT NULL,
 						   accrual NUMERIC(12,2) NOT NULL,
 						   status TEXT NOT NULL,
 						   CONSTRAINT order_number_pk_constraint PRIMARY KEY (order_number_id));
 
                        CREATE TABLE IF NOT EXISTS public.accrual_products (
                            id SERIAL PRIMARY KEY,
-                           order_number INT NOT NULL,
+                           order_number BIGINT NOT NULL,
 						   description TEXT NOT NULL,
 						   price NUMERIC(12,2) NOT NULL,
                            FOREIGN KEY (order_number) REFERENCES public.accrual_orders (order_number_id));

@@ -10,16 +10,16 @@ import (
 
 type (
 	ShowOrderCalculationRepository interface {
-		GetOrderByNumber(context.Context, int) (*core.OrderReceipt, error)
+		GetOrderByNumber(context.Context, int64) (*core.OrderReceipt, error)
 	}
 
 	ShowOrderCalculationPrimaryPort interface {
-		Execute(context.Context, int) (*ShowOrderCalculationOutputDTO, error)
+		Execute(context.Context, int64) (*ShowOrderCalculationOutputDTO, error)
 	}
 
 	ShowOrderCalculationOutputDTO struct {
 		Status  string             `json:"status"`
-		Order   int                `json:"order"`
+		Order   int64              `json:"order"`
 		Accrual sharedkernel.Money `json:"accrual"`
 	}
 
@@ -36,7 +36,7 @@ func NewShowOrderCalculation(repo ShowOrderCalculationRepository) *ShowOrderCalc
 	}
 }
 
-func (s *ShowOrderCalculation) Execute(ctx context.Context, number int) (*ShowOrderCalculationOutputDTO, error) {
+func (s *ShowOrderCalculation) Execute(ctx context.Context, number int64) (*ShowOrderCalculationOutputDTO, error) {
 	orderState, err := s.Repo.GetOrderByNumber(ctx, number)
 	if err != nil {
 		return nil, err

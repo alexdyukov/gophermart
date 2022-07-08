@@ -38,7 +38,7 @@ func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrder
 func (reg *RegisterOrderReceipt) Execute(
 	ctx context.Context, dto *RegisterOrderReceiptInputDTO,
 ) (*core.OrderReceipt, error) { // nolint:whitespace // ok
-	number, err := strconv.Atoi(dto.OrderNumber)
+	number, err := strconv.ParseInt(dto.OrderNumber, 10, 64)
 	if err != nil {
 		return nil, err
 	}

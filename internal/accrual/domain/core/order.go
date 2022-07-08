@@ -18,12 +18,12 @@ type (
 	OrderReceipt struct {
 		Goods       []Product
 		Accrual     sharedkernel.Money
-		OrderNumber int
+		OrderNumber int64
 		Status      sharedkernel.Status
 	}
 )
 
-func NewOrderReceipt(number int, goods []Product) *OrderReceipt {
+func NewOrderReceipt(number int64, goods []Product) *OrderReceipt {
 	order := OrderReceipt{
 		Status:      sharedkernel.NEW,
 		Accrual:     0,
