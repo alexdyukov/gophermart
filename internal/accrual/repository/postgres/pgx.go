@@ -180,7 +180,7 @@ func (accdb *AccrualDB) GetOrderByNumberWithGoods( // nolint:funlen,cyclop // ok
 	defer func() {
 		err = transaction.Rollback()
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
 		}
 	}()
 
@@ -195,7 +195,7 @@ func (accdb *AccrualDB) GetOrderByNumberWithGoods( // nolint:funlen,cyclop // ok
 	defer func() {
 		err = orderStmt.Close()
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
 		}
 	}()
 
@@ -224,7 +224,7 @@ func (accdb *AccrualDB) GetOrderByNumberWithGoods( // nolint:funlen,cyclop // ok
 	defer func() {
 		err = orderStmt.Close()
 		if err != nil {
-			log.Println(err)
+			// log.Println(err)
 		}
 	}()
 

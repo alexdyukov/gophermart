@@ -37,6 +37,7 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 			return
 		}
 
+		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
 
 		_, err = writer.Write(result)
