@@ -288,7 +288,7 @@ func (accdb *AccrualDB) FindAllRewardMechanicsByTokens( // nolint:funlen,cyclop,
 		}
 	}()
 
-	values := make([]any, 0)
+	values := make([]interface{}, 0)
 	for _, v := range tokens {
 		values = append(values, v)
 	}
