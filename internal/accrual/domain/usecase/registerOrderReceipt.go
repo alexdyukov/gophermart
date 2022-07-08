@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type (
@@ -27,7 +28,10 @@ type (
 	}
 )
 
-var ErrOrderAlreadyExist = errors.New("error order number already exists")
+var (
+	ErrOrderAlreadyExist    = errors.New("error order number already exists")
+	ErrIncorrectOrderNumber = errors.New("order number is incorrect")
+)
 
 func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrderReceipt {
 	return &RegisterOrderReceipt{
@@ -38,9 +42,13 @@ func NewRegisterOrderReceipt(repo RegisterOrderReceiptRepository) *RegisterOrder
 func (reg *RegisterOrderReceipt) Execute(
 	ctx context.Context, dto *RegisterOrderReceiptInputDTO,
 ) (*core.OrderReceipt, error) { // nolint:whitespace // ok
-	number, err := strconv.ParseInt(dto.OrderNumber, 10, 64)
+	if !sharedkernel.ValidLuhn(dto.OrderNumber) {
+		return nil, ErrIncorrectOrderNumber
+	}
+
+	number, err := strconv.ParseInt(dto.OrderNumber, 10, 64) // nolint:gomnd // ok
 	if err != nil {
-		return nil, err
+		return nil, ErrIncorrectOrderNumber
 	}
 
 	orderReceipt := core.NewOrderReceipt(number, dto.Goods)

@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/usecase"
 	"github.com/go-chi/chi"
@@ -17,18 +16,17 @@ import (
 // 500 — внутренняя ошибка сервера.
 func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCalculationPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		n := chi.URLParam(request, "number")
-
-		number, err := strconv.ParseInt(n, 10, 64)
-		if err != nil {
-			writer.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
+		number := chi.URLParam(request, "number")
 
 		output, err := showOrderCalculationUsecase.Execute(request.Context(), number)
 		if err != nil {
-			log.Println(err)
+
+			if errors.Is(err, usecase.ErrIncorrectOrderNumber) {
+				writer.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
+
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -77,7 +75,11 @@ func RegisterOrderPostHandler(
 
 		orderReceipt, err := registerPurchasedOrderUsecase.Execute(request.Context(), &orderReceiptDTO)
 		if err != nil {
-			log.Println(err)
+			if errors.Is(err, usecase.ErrIncorrectOrderNumber) {
+				writer.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return

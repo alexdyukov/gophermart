@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
@@ -14,7 +15,7 @@ type (
 	}
 
 	ShowOrderCalculationPrimaryPort interface {
-		Execute(context.Context, int64) (*ShowOrderCalculationOutputDTO, error)
+		Execute(context.Context, string) (*ShowOrderCalculationOutputDTO, error)
 	}
 
 	ShowOrderCalculationOutputDTO struct {
@@ -36,8 +37,17 @@ func NewShowOrderCalculation(repo ShowOrderCalculationRepository) *ShowOrderCalc
 	}
 }
 
-func (s *ShowOrderCalculation) Execute(ctx context.Context, number int64) (*ShowOrderCalculationOutputDTO, error) {
-	orderState, err := s.Repo.GetOrderByNumber(ctx, number)
+func (s *ShowOrderCalculation) Execute(ctx context.Context, number string) (*ShowOrderCalculationOutputDTO, error) {
+	if !sharedkernel.ValidLuhn(number) {
+		return nil, ErrIncorrectOrderNumber
+	}
+
+	orderNumber, err := strconv.ParseInt(number, 10, 64) // nolint:gomnd // ok
+	if err != nil {
+		return nil, ErrIncorrectOrderNumber
+	}
+
+	orderState, err := s.Repo.GetOrderByNumber(ctx, orderNumber)
 	if err != nil {
 		return nil, err
 	}
