@@ -60,9 +60,11 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sha
 	}
 
 	if inputDTO == nil {
-		inputDTO.Order = number
-		inputDTO.Status = sharedkernel.NEW
-		inputDTO.Accrual = 0
+		inputDTO = &CalculationStateDTO{
+			Accrual: 0,
+			Order:   number,
+			Status:  sharedkernel.NEW,
+		}
 	}
 
 	userOrder := core.NewOrderNumber(number, sharedkernel.Money(inputDTO.Accrual), user.ID(), inputDTO.Status)
