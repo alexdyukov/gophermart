@@ -32,7 +32,7 @@ func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int) (*usecase.Ca
 
 	log.Println(ag.addr + ag.path + numStr)
 
-	response, err := ag.client.Get(ag.proto + ag.addr + ag.path + numStr)
+	response, err := ag.client.Get(ag.addr + ag.path + numStr)
 	if err != nil {
 		log.Println(err)
 
