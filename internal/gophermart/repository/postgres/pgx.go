@@ -4,9 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
+	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 type GophermartDB struct {
@@ -71,9 +74,68 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 	return result, nil
 }
 
-func (gdb *GophermartDB) FindAccountByID(ctx context.Context, _ string) (core.Account, error) {
-	// retrieve User's account from database and construct it with core.RestoreAccount
-	return core.Account{}, nil
+// nolint:funlen // ok
+func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
+	var ( // для сохранения чтобы потом передать в функции
+		orderNumber             int
+		amount, accrual         sharedkernel.Money
+		operationTime           time.Time
+		idWithdrawal, idAccount string
+	)
+
+	stmt, err := gdb.PrepareContext(ctx, `SELECT  uid, accrual FROM user_account WHERE userID = $1`)
+	if err != nil {
+		return core.Account{}, err
+	}
+
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	err = stmt.QueryRowContext(ctx, userID).Scan(&idAccount, &accrual)
+
+	if err != nil {
+		return core.Account{}, err //nolint:wrapcheck  // ok
+	}
+
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	// Withdrawals --------
+	stmt, err = gdb.PrepareContext(ctx,
+		`SELECT uid, orderNumber, amount, dateAndTime FROM user_withdrawals WHERE userID = $1 ORDER BY dateAndTime`)
+	if err != nil {
+		return core.Account{}, err
+	}
+
+	rows, err := stmt.QueryContext(ctx, userID)
+	if err != nil {
+		return core.Account{}, err
+	}
+	defer rows.Close()
+
+	withdrawalsHistory := make([]core.AccountWithdrawals, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&idWithdrawal, &orderNumber, &amount, &operationTime)
+		if err != nil {
+			return core.Account{}, err
+		}
+
+		accountWithdrawals := core.RestoreAccountWithdrawals(operationTime, idWithdrawal, orderNumber, amount)
+		withdrawalsHistory = append(withdrawalsHistory, *accountWithdrawals)
+	}
+
+	acc := core.RestoreAccount(idAccount, userID, accrual, withdrawalsHistory)
+
+	return *acc, nil
 }
 
 func (gdb *GophermartDB) SaveUserOrder(context.Context, core.UserOrderNumber) error {
@@ -97,7 +159,6 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												dateAndTime	timestamp,
 												PRIMARY KEY (uid)
 												);
-
 								CREATE TABLE IF NOT EXISTS public.user_withdrawals (
 								    			uid TEXT NOT NULL,
      											orderNumber	bigint NOT NULL, 
@@ -105,6 +166,13 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												amount		numeric,
 												dateAndTime	timestamp,
 												PRIMARY KEY (uid)
+												);
+	CREATE TABLE IF NOT EXISTS public.user_account (
+								    			uid TEXT NOT NULL,
+												userID TEXT,
+												accrual		numeric,
+												withdrawal	numeric,
+												PRIMARY KEY (uid, userID)
 												);
 												`)
 	if err != nil {
