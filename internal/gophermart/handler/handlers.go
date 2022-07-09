@@ -161,7 +161,10 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 // 500 — внутренняя ошибка сервера.
 func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
+		//user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
+		ok := true
+		user := sharedkernel.RestoreUser("057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b", "olesya")
+
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
 
@@ -197,7 +200,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 // 204 — нет ни одного списания.
 // 401 — пользователь не авторизован.
 // 500 — внутренняя ошибка сервера.
-func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort) http.HandlerFunc {
+func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort) http.HandlerFunc { // 4
 	return func(writer http.ResponseWriter, request *http.Request) {
 		ok := true
 		user := sharedkernel.RestoreUser("057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b", "olesya")

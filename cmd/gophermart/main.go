@@ -55,6 +55,11 @@ func main() { // nolint:funlen // ok
 	err = gophermartStore.SaveOrderTest(ctx, idUser, 988355568, 200, sharedkernel.PROCESSING, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
 	err = gophermartStore.SaveOrderTest(ctx, idUser, 104535323, 200, sharedkernel.PROCESSED, time.Date(2018, time.May, 15, 17, 45, 12, 0, time.Local))
 
+	err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 999999999, 50, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 1000000, 60, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+
+	err = gophermartStore.SaveUserAccountTest(ctx, idUser, 550, 110)
+
 	if err != nil {
 		fmt.Println("ошибка при записи заказа ", err)
 		return
@@ -75,7 +80,7 @@ func main() { // nolint:funlen // ok
 		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(usecase.NewListUserOrders(gophermartStore)))
 		subRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowUserBalance(gophermartStore)))
 		subRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawUserFunds(gophermartStore)))
-		subRouter.Get("/api/user/withdrawals", handler.GetWithdrawals(
+		subRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(
 			usecase.NewListUserWithdrawals(gophermartStore)))
 	})
 
