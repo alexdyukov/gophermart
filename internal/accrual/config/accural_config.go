@@ -11,7 +11,7 @@ type Accrual struct {
 }
 
 const (
-	DefaultAddress = "127.0.0.1:8088"
+	DefaultAddress = "127.0.0.1:8089"
 	DefaultDB      = ""
 )
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -46,7 +47,7 @@ func main() {
 		Addr:    addr,
 		Handler: accrualRouter,
 	}
-
+	fmt.Println("start accrual ", addr)
 	err = server.ListenAndServe()
 	log.Print(err)
 }
