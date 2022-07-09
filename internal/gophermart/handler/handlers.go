@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -47,13 +48,12 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 
 		err = registerUserOrderUsecase.Execute(request.Context(), orderNumber, user)
 		if err != nil {
-			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError)
+			checkAndSendErr(writer, err)
 
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		writer.WriteHeader(http.StatusAccepted) // 202
 	}
 }
 
@@ -215,4 +215,28 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 			}
 		}
 	}
+}
+
+func checkAndSendErr(writer http.ResponseWriter, err error) {
+	log.Println(err)
+
+	if errors.Is(err, sharedkernel.ErrOrderExists) {
+		writer.WriteHeader(http.StatusOK) // 200
+
+		return
+	}
+
+	if errors.Is(err, sharedkernel.ErrAnotherUserOrder) {
+		writer.WriteHeader(http.StatusConflict) // 409
+
+		return
+	}
+
+	if errors.Is(err, sharedkernel.ErrIncorrectOrderNumber) {
+		writer.WriteHeader(http.StatusUnprocessableEntity) // 422
+
+		return
+	}
+
+	writer.WriteHeader(http.StatusInternalServerError) // 500
 }
