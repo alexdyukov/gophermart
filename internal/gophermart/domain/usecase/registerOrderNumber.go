@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
@@ -51,9 +52,17 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sha
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
 
+	// вот тут выдает ошибку, не может что-то там обновить и дальше не идет.
 	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
 	if err != nil {
-		return err // nolint:wrapcheck // ok
+		// return err
+		log.Printf("%v", err)
+	}
+
+	if inputDTO == nil {
+		inputDTO.Order = number
+		inputDTO.Status = sharedkernel.NEW
+		inputDTO.Accrual = 0
 	}
 
 	userOrder := core.NewOrderNumber(number, sharedkernel.Money(inputDTO.Accrual), user.ID(), inputDTO.Status)
