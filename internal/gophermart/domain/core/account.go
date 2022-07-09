@@ -52,6 +52,10 @@ func RestoreAccountWithdrawals(oTm time.Time, uid string, num int, sum sharedker
 	}
 }
 
+func GetSliceAccountWithdrawals(acc *Account) *[]AccountWithdrawals {
+	return &acc.withdrawHistory
+}
+
 func (acc *Account) CurrentBalance() sharedkernel.Money {
 	return acc.balance
 }
