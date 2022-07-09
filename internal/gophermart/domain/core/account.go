@@ -9,10 +9,10 @@ import (
 
 type (
 	AccountWithdrawals struct {
+		OperationTime time.Time
 		ID            string
 		OrderNumber   int
 		Amount        sharedkernel.Money
-		OperationTime int64
 	}
 
 	Account struct {
@@ -34,12 +34,21 @@ func NewAccount(userID string) *Account {
 	}
 }
 
-func RestoreAccount(id, userID string, balance sharedkernel.Money) *Account {
+func RestoreAccount(id, userID string, balance sharedkernel.Money, wHistory []AccountWithdrawals) *Account {
 	return &Account{
 		id:              id,
 		user:            userID,
-		withdrawHistory: nil,
+		withdrawHistory: wHistory,
 		balance:         balance,
+	}
+}
+
+func RestoreAccountWithdrawals(oTm time.Time, uid string, num int, sum sharedkernel.Money) *AccountWithdrawals {
+	return &AccountWithdrawals{
+		OperationTime: oTm,
+		ID:            uid,
+		OrderNumber:   num,
+		Amount:        sum,
 	}
 }
 
@@ -65,7 +74,7 @@ func (acc *Account) WithdrawPoints(order int, amount sharedkernel.Money) error {
 	with := AccountWithdrawals{
 		OrderNumber:   order,
 		Amount:        amount,
-		OperationTime: time.Now().Unix(),
+		OperationTime: time.Now(),
 	}
 
 	acc.balance = -amount
