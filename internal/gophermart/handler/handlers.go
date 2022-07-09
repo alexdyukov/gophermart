@@ -119,7 +119,15 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		_, err := showBalanceUsecase.Execute(request.Context(), user)
+		userBalance, err := showBalanceUsecase.Execute(request.Context(), user)
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		response, err := json.Marshal(userBalance)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -128,6 +136,11 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 		}
 
 		writer.WriteHeader(http.StatusOK)
+
+		_, err = writer.Write(response)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
@@ -218,8 +231,6 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 }
 
 func checkAndSendErr(writer http.ResponseWriter, err error) {
-	log.Println(err)
-
 	if errors.Is(err, sharedkernel.ErrOrderExists) {
 		writer.WriteHeader(http.StatusOK) // 200
 
