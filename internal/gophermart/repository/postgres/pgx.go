@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
+
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
@@ -96,7 +97,6 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	}()
 
 	err = stmt.QueryRowContext(ctx, userID).Scan(&idAccount, &accrual)
-
 	if err != nil {
 		return core.Account{}, err //nolint:wrapcheck  // ok
 	}
@@ -119,22 +119,18 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	if err != nil {
 		return core.Account{}, err
 	}
-	defer rows.Close()
 
-	if err := rows.Err(); err != nil {
+	err = rows.Err()
+	if err != nil {
 		return core.Account{}, err
 	}
+
+	defer rows.Close()
 
 	withdrawalsHistory := make([]core.AccountWithdrawals, 0)
 
 	for rows.Next() {
-		err = rows.Scan(&idWithdrawal, &orderNumber, &amount, &operationTime)
-
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return core.Account{}, usecase.ErrBadCredentials
-			}
-
+		if err := rows.Scan(&idWithdrawal, &orderNumber, &amount, &operationTime); err != nil {
 			return core.Account{}, err
 		}
 
