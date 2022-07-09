@@ -121,6 +121,10 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	}
 	defer rows.Close()
 
+	if err := rows.Err(); err != nil {
+		return core.Account{}, err
+	}
+
 	withdrawalsHistory := make([]core.AccountWithdrawals, 0)
 
 	for rows.Next() {
