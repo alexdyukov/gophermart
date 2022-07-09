@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -23,6 +24,7 @@ import (
 // 500 — внутренняя ошибка сервера.
 func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserOrderPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println("#RegisterUserOrderPostHandler: пришел запрос  POST /api/user/orders")
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -31,6 +33,7 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 		}
 
 		bytes, err := io.ReadAll(request.Body)
+		fmt.Println("#RegisterUserOrderPostHandler:получили номер заказа(байты):", string(bytes))
 		if err != nil {
 			log.Printf("error while reading request.")
 			writer.WriteHeader(http.StatusBadRequest)
@@ -39,6 +42,7 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 		}
 
 		orderNumber, err := strconv.Atoi(string(bytes))
+		fmt.Println("#RegisterUserOrderPostHandler:преобразовали номер ", orderNumber)
 		if err != nil {
 			log.Printf("error while reading request.")
 			writer.WriteHeader(http.StatusBadRequest)
@@ -65,6 +69,7 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 // 500 — внутренняя ошибка сервера.
 func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println("пришел запрос  GET /api/user/orders")
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -112,6 +117,7 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 // 500 — внутренняя ошибка сервера.
 func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println("пришел запрос  /api/user/balance")
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -140,6 +146,7 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 // 500 — внутренняя ошибка сервера.
 func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)

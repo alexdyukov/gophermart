@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
@@ -47,7 +48,9 @@ func NewLoadOrderNumber(repo RegisterUserOrderRepository, gw CalculationStateGat
 }
 
 func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sharedkernel.User) error {
+
 	if !sharedkernel.ValidLuhn(strconv.Itoa(number)) {
+		fmt.Println("номер не прошел проверку луна ", number)
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
 

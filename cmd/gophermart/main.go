@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -70,6 +71,7 @@ func main() { // nolint:funlen // ok
 		Addr:    addr,
 		Handler: appRouter,
 	}
+	fmt.Println("запустился gophermart: ", addr)
 
 	err = server.ListenAndServe()
 	log.Print(err)
