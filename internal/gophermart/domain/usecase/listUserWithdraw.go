@@ -19,7 +19,7 @@ type (
 
 	ListUserWithdrawalsOutputDTO struct {
 		ProcessedAt string             `json:"processed_at"` // nolint:tagliatelle // external requirements
-		Order       int                `json:"order"`
+		Order       int64              `json:"order"`
 		Sum         sharedkernel.Money `json:"sum"`
 	}
 

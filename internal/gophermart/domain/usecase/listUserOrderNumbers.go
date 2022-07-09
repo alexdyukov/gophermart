@@ -50,7 +50,7 @@ func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) (
 
 	for _, order := range orders {
 		lstOrdNumsDTO = append(lstOrdNumsDTO, ListUserOrdersOutputDTO{
-			Number:        strconv.Itoa(order.Number),
+			Number:        strconv.FormatInt(order.Number, 10),
 			Status:        order.Status.String(),
 			Accrual:       order.Accrual,
 			UploadedAt:    order.DateAndTime,

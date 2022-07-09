@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
@@ -38,15 +37,7 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 			return
 		}
 
-		orderNumber, err := strconv.Atoi(string(bytes))
-		if err != nil {
-			log.Printf("error while reading request.")
-			writer.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		err = registerUserOrderUsecase.Execute(request.Context(), orderNumber, user)
+		err = registerUserOrderUsecase.Execute(request.Context(), string(bytes), user)
 		if err != nil {
 			checkAndSendErr(writer, err)
 
@@ -95,6 +86,7 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 		}
 
 		writer.Header().Set("Content-Type", "application/json")
+
 		writer.WriteHeader(http.StatusOK) // 200 — успешная обработка запроса.
 		_, err = writer.Write(strJSON)
 
@@ -119,7 +111,7 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		_, err := showBalanceUsecase.Execute(request.Context(), user)
+		userBalance, err := showBalanceUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -127,7 +119,21 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
+		response, err := json.Marshal(userBalance)
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
+
+		_, err = writer.Write(response)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
@@ -207,8 +213,8 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 				return
 			}
 
-			writer.WriteHeader(http.StatusOK) // 200
 			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusOK) // 200
 
 			if _, err = writer.Write(strJSON); err != nil {
 				writer.WriteHeader(http.StatusInternalServerError) // 500
@@ -218,8 +224,6 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 }
 
 func checkAndSendErr(writer http.ResponseWriter, err error) {
-	log.Println(err)
-
 	if errors.Is(err, sharedkernel.ErrOrderExists) {
 		writer.WriteHeader(http.StatusOK) // 200
 
