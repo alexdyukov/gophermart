@@ -18,10 +18,11 @@ type UserOrderNumber struct {
 
 func NewOrderNumber(num int64, sum sharedkernel.Money, uID string, sts sharedkernel.Status) UserOrderNumber {
 	return UserOrderNumber{
-		ID:      sharedkernel.NewUUID(),
-		User:    uID,
-		Number:  num,
-		Status:  sts,
-		Accrual: sum,
+		DateAndTime: time.Now(),
+		ID:          sharedkernel.NewUUID(),
+		User:        uID,
+		Number:      num,
+		Status:      sts,
+		Accrual:     sum,
 	}
 }
