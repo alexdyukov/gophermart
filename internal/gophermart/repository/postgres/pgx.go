@@ -142,9 +142,26 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	return *acc, nil
 }
 
-func (gdb *GophermartDB) SaveUserOrder(context.Context, core.UserOrderNumber) error {
-	// we receive newly created user order, and save in into db
-	// return err if something goes wrong
+func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order core.UserOrderNumber) error {
+	exists, err := orderExists(ctx, gdb.DB, order.Number)
+	if err != nil || exists {
+		return err
+	}
+	tx, err := gdb.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := tx.PrepareContext(ctx, `
+	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
+	`)
+
+	if _, err = stmt.ExecContext(ctx, order.ID, order.Number, order.User, order.Status, order.Accrual, order.DateAndTime); err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -184,4 +201,20 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 	}
 
 	return nil
+}
+
+func orderExists(ctx context.Context, db *sql.DB, orderNumber int) (bool, error) {
+	var id int
+	const selectSQL = `
+SELECT orderNumber FROM user_orders WHERE orderNumber = $1;
+`
+	err := db.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&id)
+	switch err {
+	case sql.ErrNoRows:
+		return false, nil
+	case nil:
+		return true, nil
+	default:
+		return false, err
+	}
 }
