@@ -1,8 +1,6 @@
 package core
 
 import (
-	"time"
-
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
@@ -35,8 +33,6 @@ func NewOrderReceipt(number int64, goods []Product) *OrderReceipt {
 }
 
 func (ord *OrderReceipt) CalculateRewardPoints(rewards map[string]Reward) {
-	time.Sleep(time.Second * 2) // nolint:gomnd // temp sleep
-
 	points := sharedkernel.Money(0)
 
 	for _, v := range ord.Goods {
