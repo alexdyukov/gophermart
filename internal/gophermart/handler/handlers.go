@@ -95,6 +95,7 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 		}
 
 		writer.Header().Set("Content-Type", "application/json")
+
 		writer.WriteHeader(http.StatusOK) // 200 — успешная обработка запроса.
 		_, err = writer.Write(strJSON)
 
@@ -221,8 +222,8 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 				return
 			}
 
-			writer.WriteHeader(http.StatusOK) // 200
 			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusOK) // 200
 
 			if _, err = writer.Write(strJSON); err != nil {
 				writer.WriteHeader(http.StatusInternalServerError) // 500
