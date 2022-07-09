@@ -48,7 +48,6 @@ func NewLoadOrderNumber(repo RegisterUserOrderRepository, gw CalculationStateGat
 }
 
 func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sharedkernel.User) error {
-
 	if !sharedkernel.ValidLuhn(strconv.Itoa(number)) {
 		fmt.Println("#RegisterUserOrderPostHandler: номер не прошел проверку луна ", number)
 		return sharedkernel.ErrIncorrectOrderNumber
@@ -58,11 +57,23 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sha
 	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
 	fmt.Println("#RegisterUserOrderPostHandler: из аккурала получили такую структуру: ", inputDTO)
 	if err != nil {
-
 		// return err // nolint:wrapcheck // ok
 	}
+	var (
+		accrual sharedkernel.Money
+		stat    sharedkernel.Status
+	)
 
-	userOrder := core.NewOrderNumber(number, sharedkernel.Money(inputDTO.Accrual), user.ID(), inputDTO.Status)
+	if inputDTO != nil {
+		stat = inputDTO.Status
+		accrual = sharedkernel.Money(inputDTO.Accrual)
+
+	} else {
+		stat = sharedkernel.NEW
+		accrual = sharedkernel.Money(inputDTO.Accrual)
+	}
+
+	userOrder := core.NewOrderNumber(number, accrual, user.ID(), stat)
 
 	fmt.Println("#RegisterUserOrderPostHandler: номер верный идем дальше, пробуем записать номер в БД ", number)
 	err = ruo.Repository.SaveUserOrder(ctx, &userOrder)
