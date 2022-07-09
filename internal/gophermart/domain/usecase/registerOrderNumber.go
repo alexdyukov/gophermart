@@ -55,7 +55,7 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sha
 
 	// вот тут выдает ошибку, не может что-то там обновить и дальше не идет.
 	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
-	fmt.Println("#RegisterUserOrderPostHandler: из аккурала получили такую структуру: ", inputDTO)
+
 	if err != nil {
 		// return err // nolint:wrapcheck // ok
 	}
@@ -70,7 +70,7 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sha
 
 	} else {
 		stat = sharedkernel.NEW
-		accrual = sharedkernel.Money(inputDTO.Accrual)
+		accrual = 0
 	}
 
 	userOrder := core.NewOrderNumber(number, accrual, user.ID(), stat)
