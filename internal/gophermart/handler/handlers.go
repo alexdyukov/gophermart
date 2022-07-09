@@ -185,7 +185,7 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 			return
 		}
 
-		_, err := listWithdrawalsUsecase.Execute(request.Context(), user)
+		wdrls, err := listWithdrawalsUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -193,6 +193,26 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		switch len(wdrls) {
+		case 0: // отправляем ответ что нет ни одного списания
+			writer.WriteHeader(http.StatusNoContent) // 204
+
+			return
+
+		default:
+			strJSON, err := json.Marshal(wdrls)
+			if err != nil {
+				writer.WriteHeader(http.StatusInternalServerError) // 500
+
+				return
+			}
+
+			writer.WriteHeader(http.StatusOK) // 200
+			writer.Header().Set("Content-Type", "application/json")
+
+			if _, err = writer.Write(strJSON); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError) // 500
+			}
+		}
 	}
 }
