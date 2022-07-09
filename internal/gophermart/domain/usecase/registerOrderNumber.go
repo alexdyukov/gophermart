@@ -46,6 +46,10 @@ func NewLoadOrderNumber(repo RegisterUserOrderRepository, gw CalculationStateGat
 }
 
 func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sharedkernel.User) error {
+	if !sharedkernel.ValidLuhn(dto.OrderNumber) {
+		return nil, ErrIncorrectOrderNumber
+	}
+
 	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
 	if err != nil {
 		return err // nolint:wrapcheck // ok
