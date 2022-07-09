@@ -12,7 +12,7 @@ type (
 
 	// RegisterUserOrderRepository is a secondary port.
 	RegisterUserOrderRepository interface {
-		SaveUserOrder(context.Context, core.UserOrderNumber) error
+		SaveUserOrder(context.Context, *core.UserOrderNumber) error
 	}
 
 	// CalculationStateGateway is a secondary port.
@@ -58,7 +58,7 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sha
 
 	userOrder := core.NewOrderNumber(number, sharedkernel.Money(inputDTO.Accrual), user.ID(), inputDTO.Status)
 
-	err = ruo.Repository.SaveUserOrder(ctx, userOrder)
+	err = ruo.Repository.SaveUserOrder(ctx, &userOrder)
 	if err != nil {
 		return err // nolint:wrapcheck // ok
 	}

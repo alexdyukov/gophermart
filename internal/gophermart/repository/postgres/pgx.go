@@ -142,32 +142,42 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	return *acc, nil
 }
 
-func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order core.UserOrderNumber) error {
-	exists, usrId, err := orderExists(ctx, gdb.DB, order.Number)
+func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrderNumber) error {
+	exists, usrID, err := orderExists(ctx, gdb.DB, order.Number)
 	if err != nil || exists {
-
 		if exists {
-
-			if usrId != order.User {
+			if usrID != order.User {
 				return sharedkernel.ErrAnotherUserOrder
 			}
 
 			return sharedkernel.ErrOrderExists
 		}
+
 		return err
 	}
-	tx, err := gdb.Begin()
+
+	trx, err := gdb.Begin()
 	if err != nil {
 		return err
 	}
-	stmt, err := tx.PrepareContext(ctx, `
+
+	stmt, err := trx.PrepareContext(ctx, `
 	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
 	`)
-
-	if _, err = stmt.ExecContext(ctx, order.ID, order.Number, order.User, order.Status, order.Accrual, order.DateAndTime); err != nil {
+	if err != nil {
 		return err
 	}
-	if err = tx.Commit(); err != nil {
+
+	_, err = stmt.ExecContext(ctx, order.ID, order.Number, order.User,
+		order.Status, order.Accrual, order.DateAndTime)
+
+	if err != nil {
+		return err
+	}
+
+	err = trx.Commit()
+
+	if err != nil {
 		return err
 	}
 
@@ -212,20 +222,24 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 	return nil
 }
 
-func orderExists(ctx context.Context, db *sql.DB, orderNumber int) (bool, string, error) {
-	var id int
-	var userID string
+func orderExists(ctx context.Context, gdb *sql.DB, orderNumber int) (bool, string, error) {
+	//
+	var (
+		orderID int
+		userID  string
+	)
 
 	const selectSQL = `
-SELECT orderNumber, userID FROM user_orders WHERE orderNumber = $1;
-`
-	err := db.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&id, &userID)
-	switch err {
-	case sql.ErrNoRows:
-		return false, userID, nil
-	case nil:
-		return true, userID, nil
-	default:
+SELECT orderNumber, userID FROM user_orders WHERE orderNumber = $1;`
+
+	err := gdb.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&orderID, &userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, userID, nil
+		}
+
 		return false, userID, err
 	}
+
+	return true, userID, nil
 }

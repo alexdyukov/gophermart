@@ -1,6 +1,8 @@
 package sharedkernel
 
-import "errors"
+import (
+	"errors"
+)
 
 type AppError struct {
 	err error
@@ -9,9 +11,9 @@ type AppError struct {
 }
 
 var (
-	ErrOrderExists          = errors.New("Order exists")
-	ErrAnotherUserOrder     = errors.New("This is anoter user's order")
-	ErrIncorrectOrderNumber = errors.New("Incorrect order number ")
+	ErrOrderExists          = errors.New("order exists")
+	ErrAnotherUserOrder     = errors.New("this is anoter user's order")
+	ErrIncorrectOrderNumber = errors.New("incorrect order number ")
 )
 
 func (e *AppError) Error() string {
