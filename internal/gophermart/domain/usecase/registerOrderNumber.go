@@ -57,23 +57,17 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sha
 	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
 
 	if err != nil {
+		fmt.Println()
 		// return err // nolint:wrapcheck // ok
 	}
-	var (
-		accrual sharedkernel.Money
-		stat    sharedkernel.Status
-	)
 
-	if inputDTO != nil {
-		stat = inputDTO.Status
-		accrual = sharedkernel.Money(inputDTO.Accrual)
-
-	} else {
-		stat = sharedkernel.NEW
-		accrual = 0
+	if inputDTO == nil {
+		inputDTO.Order = number
+		inputDTO.Status = sharedkernel.NEW
+		inputDTO.Accrual = 0
 	}
 
-	userOrder := core.NewOrderNumber(number, accrual, user.ID(), stat)
+	userOrder := core.NewOrderNumber(number, sharedkernel.Money(inputDTO.Accrual), user.ID(), inputDTO.Status)
 
 	fmt.Println("#RegisterUserOrderPostHandler: номер верный идем дальше, пробуем записать номер в БД ", number)
 	err = ruo.Repository.SaveUserOrder(ctx, &userOrder)
