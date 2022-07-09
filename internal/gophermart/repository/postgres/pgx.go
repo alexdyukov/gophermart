@@ -78,7 +78,7 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
 	var ( // для сохранения чтобы потом передать в функции
 		orderNumber             int
-		amount, accrual         sharedkernel.Money
+		amount, balance         sharedkernel.Money
 		operationTime           time.Time
 		idWithdrawal, idAccount string
 	)
@@ -95,7 +95,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 		}
 	}()
 
-	err = stmt.QueryRowContext(ctx, userID).Scan(&idAccount, &accrual)
+	err = stmt.QueryRowContext(ctx, userID).Scan(&idAccount, &balance)
 	if err != nil {
 		return core.Account{}, err //nolint:wrapcheck  // ok
 	}
@@ -137,7 +137,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 		withdrawalsHistory = append(withdrawalsHistory, *accountWithdrawals)
 	}
 
-	acc := core.RestoreAccount(idAccount, userID, accrual, withdrawalsHistory)
+	acc := core.RestoreAccount(idAccount, userID, balance, withdrawalsHistory)
 
 	return *acc, nil
 }
@@ -174,7 +174,7 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 	CREATE TABLE IF NOT EXISTS public.user_account (
 								    			uid TEXT NOT NULL,
 												userID TEXT,
-												accrual		numeric,
+												balance		numeric,
 												withdrawal	numeric,
 												PRIMARY KEY (uid, userID)
 												);
