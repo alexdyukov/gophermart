@@ -12,11 +12,11 @@ type UserOrderNumber struct {
 	ID          string
 	User        string
 	Status      sharedkernel.Status
-	Number      int
+	Number      int64
 	Accrual     sharedkernel.Money
 }
 
-func NewOrderNumber(num int, sum sharedkernel.Money, uID string, sts sharedkernel.Status) UserOrderNumber {
+func NewOrderNumber(num int64, sum sharedkernel.Money, uID string, sts sharedkernel.Status) UserOrderNumber {
 	return UserOrderNumber{
 		ID:      sharedkernel.NewUUID(),
 		User:    uID,

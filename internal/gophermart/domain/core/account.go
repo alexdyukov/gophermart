@@ -11,7 +11,7 @@ type (
 	AccountWithdrawals struct {
 		OperationTime time.Time
 		ID            string
-		OrderNumber   int
+		OrderNumber   int64
 		Amount        sharedkernel.Money
 	}
 
@@ -43,7 +43,7 @@ func RestoreAccount(id, userID string, balance sharedkernel.Money, wHistory []Ac
 	}
 }
 
-func RestoreAccountWithdrawals(oTm time.Time, uid string, num int, sum sharedkernel.Money) *AccountWithdrawals {
+func RestoreAccountWithdrawals(oTm time.Time, uid string, num int64, sum sharedkernel.Money) *AccountWithdrawals {
 	return &AccountWithdrawals{
 		OperationTime: oTm,
 		ID:            uid,
@@ -70,7 +70,7 @@ func (acc *Account) Add(amount sharedkernel.Money) {
 }
 
 // WithdrawPoints is just a representation of core model functionality behavior.
-func (acc *Account) WithdrawPoints(order int, amount sharedkernel.Money) error {
+func (acc *Account) WithdrawPoints(order int64, amount sharedkernel.Money) error {
 	if amount > acc.balance {
 		return ErrNotEnoughFunds
 	}

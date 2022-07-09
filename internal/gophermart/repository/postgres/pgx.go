@@ -39,7 +39,7 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 	status,
 	accrual,
 	dateAndTime
-	FROM user_orders
+	FROM public.user_orders
 	WHERE userID = $1
  	ORDER BY dateAndTime
 	`
@@ -77,13 +77,13 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 // nolint:funlen // ok
 func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
 	var ( // для сохранения чтобы потом передать в функции
-		orderNumber             int
+		orderNumber             int64
 		amount, balance         sharedkernel.Money
 		operationTime           time.Time
 		idWithdrawal, idAccount string
 	)
 
-	stmt, err := gdb.PrepareContext(ctx, `SELECT  uid, accrual FROM user_account WHERE userID = $1`)
+	stmt, err := gdb.PrepareContext(ctx, `SELECT  uid, balance FROM user_account WHERE userID = $1`)
 	if err != nil {
 		return core.Account{}, err
 	}
@@ -222,7 +222,7 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 	return nil
 }
 
-func orderExists(ctx context.Context, gdb *sql.DB, orderNumber int) (bool, string, error) {
+func orderExists(ctx context.Context, gdb *sql.DB, orderNumber int64) (bool, string, error) {
 	//
 	var (
 		orderID int
@@ -230,7 +230,7 @@ func orderExists(ctx context.Context, gdb *sql.DB, orderNumber int) (bool, strin
 	)
 
 	const selectSQL = `
-SELECT orderNumber, userID FROM user_orders WHERE orderNumber = $1;`
+SELECT orderNumber, userID FROM public.user_orders WHERE orderNumber = $1;`
 
 	err := gdb.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&orderID, &userID)
 	if err != nil {

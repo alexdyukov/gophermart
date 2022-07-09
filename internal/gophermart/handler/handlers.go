@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
@@ -38,15 +37,7 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 			return
 		}
 
-		orderNumber, err := strconv.Atoi(string(bytes))
-		if err != nil {
-			log.Printf("error while reading request.")
-			writer.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		err = registerUserOrderUsecase.Execute(request.Context(), orderNumber, user)
+		err = registerUserOrderUsecase.Execute(request.Context(), string(bytes), user)
 		if err != nil {
 			checkAndSendErr(writer, err)
 
