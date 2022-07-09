@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -112,7 +113,10 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 // 500 — внутренняя ошибка сервера.
 func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
+		ok := true
+		user := sharedkernel.RestoreUser("057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b", "olesya")
+
+		// user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
 
@@ -157,7 +161,10 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 // 500 — внутренняя ошибка сервера.
 func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
+		//user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
+		ok := true
+		user := sharedkernel.RestoreUser("057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b", "olesya")
+
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
 
@@ -193,16 +200,19 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 // 204 — нет ни одного списания.
 // 401 — пользователь не авторизован.
 // 500 — внутренняя ошибка сервера.
-func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort) http.HandlerFunc {
+func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort) http.HandlerFunc { // 4
 	return func(writer http.ResponseWriter, request *http.Request) {
-		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
+		ok := true
+		user := sharedkernel.RestoreUser("057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b", "olesya")
+
+		// user, ok := request.Context().Value(middleware.User).(*sharedkernel.User) // убрали для теста
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
 
 			return
 		}
 
-		_, err := listWithdrawalsUsecase.Execute(request.Context(), user)
+		wdrls, err := listWithdrawalsUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -210,6 +220,31 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		switch len(wdrls) {
+		case 0: // отправляем ответ что нет ни одного списания
+			fmt.Println("GetWithdrawals: не нашли ни одного списания", err)
+			writer.WriteHeader(204)
+
+		default:
+			{
+				writer.WriteHeader(200)
+				writer.Header().Set("Content-Type", "application/json")
+
+				strJSON, err := json.Marshal(wdrls)
+				if err != nil {
+					fmt.Println("GetWithdrawals: ушли в ошибку #2 ", err)
+					writer.WriteHeader(500)
+					return
+				}
+
+				if _, err = writer.Write(strJSON); err != nil {
+					fmt.Println("GetWithdrawals: ушли в ошибку #3", err)
+					writer.WriteHeader(500)
+
+					return
+				}
+				fmt.Println("GetWithdrawals: все зашибись, отправили статус 200 и JSON ", string(strJSON))
+			}
+		}
 	}
 }

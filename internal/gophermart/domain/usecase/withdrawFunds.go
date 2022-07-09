@@ -19,8 +19,8 @@ type (
 
 	// WithdrawUserFundsInputDTO Example of DTO with json at usecase level, which not quite correct.
 	WithdrawUserFundsInputDTO struct {
-		Order int `json:"order"`
-		Sum   int `json:"sum"`
+		Order int                `json:"order"`
+		Sum   sharedkernel.Money `json:"sum"`
 	}
 
 	WithdrawUserFunds struct {
@@ -34,15 +34,20 @@ func NewWithdrawUserFunds(repo WithdrawUserFundsRepository) *WithdrawUserFunds {
 	}
 }
 
-func (w *WithdrawUserFunds) Execute(ctx context.Context, user *sharedkernel.User, _ WithdrawUserFundsInputDTO) error {
-	_, err := w.Repo.FindAccountByID(ctx, user.ID())
+func (w *WithdrawUserFunds) Execute(ctx context.Context, user *sharedkernel.User, dto WithdrawUserFundsInputDTO) error { // 5
+	account, err := w.Repo.FindAccountByID(ctx, user.ID())
+	if err != nil {
+		return err // nolint:wrapcheck // ok
+	}
+	// do work with account
+	err = account.WithdrawPoints(dto.Order, dto.Sum)
 	if err != nil {
 		return err // nolint:wrapcheck // ok
 	}
 
-	// do work with account
-	// _ = account.WithdrawPoints(dto.Order, dto.Sum)
-	// _ = w.Repository.SaveAccount(account)
+	err = w.Repo.SaveAccount(ctx, account)
 
 	return nil
 }
+
+// 5

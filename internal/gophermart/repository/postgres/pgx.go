@@ -73,13 +73,13 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
 	// retrieve User's account from database and construct it with core.RestoreAccount
 	var ( // для сохранения чтобы потом передать в функции
-		orderNumber     int
-		amount, accrual sharedkernel.Money
-		operationTime   time.Time
-		idWithdrawal    string
+		orderNumber             int
+		amount, accrual         sharedkernel.Money
+		operationTime           time.Time
+		idWithdrawal, idAccount string
 	)
 
-	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual) FROM user_orders WHERE userID = $1 and status = $2`)
+	stmt, err := gdb.PrepareContext(ctx, `SELECT  uid, accrual FROM user_account WHERE userID = $1`)
 	if err != nil {
 		return core.Account{}, err
 	}
@@ -91,7 +91,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 		}
 	}()
 
-	err = stmt.QueryRowContext(ctx, userID, sharedkernel.PROCESSED).Scan(&accrual)
+	err = stmt.QueryRowContext(ctx, userID).Scan(&idAccount, &accrual)
 
 	if err != nil {
 		return core.Account{}, err //nolint:wrapcheck  // ok
@@ -129,7 +129,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 		withdrawalsHistory = append(withdrawalsHistory, *accountWithdrawals)
 	}
 
-	acc := core.RestoreAccount(sharedkernel.NewUUID(), userID, accrual, withdrawalsHistory)
+	acc := core.RestoreAccount(idAccount, userID, accrual, withdrawalsHistory)
 
 	return *acc, nil
 }
@@ -140,7 +140,8 @@ func (gdb *GophermartDB) SaveUserOrder(context.Context, core.UserOrderNumber) er
 	return nil
 }
 
-func (gdb *GophermartDB) SaveAccount(context.Context, core.Account) error {
+func (gdb *GophermartDB) SaveAccount(context.Context, core.Account) error { // 5
+
 	// Store core.Account into database
 	return nil
 }
@@ -163,6 +164,14 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												amount		numeric,
 												dateAndTime	timestamp,
 												PRIMARY KEY (uid)
+												);
+
+	CREATE TABLE IF NOT EXISTS public.user_account (
+								    			uid TEXT NOT NULL,
+												userID TEXT,
+												accrual		numeric,
+												withdrawal	numeric,
+												PRIMARY KEY (uid, userID)
 												);
 												`)
 	if err != nil {

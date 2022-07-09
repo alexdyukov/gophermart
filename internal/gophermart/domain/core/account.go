@@ -52,13 +52,21 @@ func RestoreAccount(id, userID string, balance sharedkernel.Money, wHistory []Ac
 	}
 }
 
+func GetSliceAccountWithdrawals(acc *Account) *[]AccountWithdrawals { //4
+	return &acc.withdrawHistory //4
+} //4
+
 func (acc *Account) CurrentBalance() sharedkernel.Money {
 	return acc.balance
 }
 
 func (acc *Account) WithdrawalsSum() sharedkernel.Money {
+	var result sharedkernel.Money
+	for _, line := range acc.withdrawHistory {
+		result += line.Amount
+	}
 	// return cached sum or calculate on fly
-	return 0
+	return result
 }
 
 func (acc *Account) Add(amount sharedkernel.Money) {
