@@ -2,9 +2,10 @@ package usecase
 
 import (
 	"context"
+	"time"
+
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
-	"time"
 )
 
 type (
@@ -43,9 +44,14 @@ func (list *ListUserWithdrawals) Execute(ctx context.Context, user *sharedkernel
 
 	sliceAccountWithdrawals := core.GetSliceAccountWithdrawals(&acc)
 	slwoDTO := make([]ListUserWithdrawalsOutputDTO, 0, len(*sliceAccountWithdrawals))
-	for _, withdraw := range *sliceAccountWithdrawals {
 
-		slwoDTO = append(slwoDTO, ListUserWithdrawalsOutputDTO{Order: withdraw.OrderNumber, Sum: withdraw.Amount, ProcessedAt: withdraw.OperationTime.Format(time.RFC3339)})
+	for _, withdraw := range *sliceAccountWithdrawals {
+		slwoDTO = append(slwoDTO,
+			ListUserWithdrawalsOutputDTO{
+				Order:       withdraw.OrderNumber,
+				Sum:         withdraw.Amount,
+				ProcessedAt: withdraw.OperationTime.Format(time.RFC3339),
+			})
 	}
 
 	return slwoDTO, nil
