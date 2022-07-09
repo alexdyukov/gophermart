@@ -18,9 +18,9 @@ type (
 	}
 
 	ListUserWithdrawalsOutputDTO struct {
-		ProcessedAt time.Time `json:"processed_at"` // nolint:tagliatelle // external requirements
-		Order       string    `json:"order"`
-		Sum         int       `json:"sum"`
+		ProcessedAt string             `json:"processed_at"` // nolint:tagliatelle // external requirements
+		Order       int                `json:"order"`
+		Sum         sharedkernel.Money `json:"sum"`
 	}
 
 	ListUserWithdrawals struct {
@@ -37,12 +37,22 @@ func NewListUserWithdrawals(repo ListUserWithdrawalsRepository) *ListUserWithdra
 func (list *ListUserWithdrawals) Execute(ctx context.Context, user *sharedkernel.User) (
 	[]ListUserWithdrawalsOutputDTO, error,
 ) { // nolint:whitespace // conflict with gofumpt
-	_, err := list.Repo.FindAccountByID(ctx, user.ID())
+	acc, err := list.Repo.FindAccountByID(ctx, user.ID())
 	if err != nil {
 		return nil, err // nolint:wrapcheck // ok
 	}
 
-	// map entity to output
+	sliceAccountWithdrawals := core.GetSliceAccountWithdrawals(&acc)
+	slwoDTO := make([]ListUserWithdrawalsOutputDTO, 0, len(*sliceAccountWithdrawals))
 
-	return []ListUserWithdrawalsOutputDTO{{}}, nil
+	for _, withdraw := range *sliceAccountWithdrawals {
+		slwoDTO = append(slwoDTO,
+			ListUserWithdrawalsOutputDTO{
+				Order:       withdraw.OrderNumber,
+				Sum:         withdraw.Amount,
+				ProcessedAt: withdraw.OperationTime.Format(time.RFC3339),
+			})
+	}
+
+	return slwoDTO, nil
 }
