@@ -48,12 +48,29 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 		err = registerUserOrderUsecase.Execute(request.Context(), orderNumber, user)
 		if err != nil {
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError)
+			if err == sharedkernel.ErrOrderExists {
+				writer.WriteHeader(http.StatusOK) // 200
+
+				return
+			}
+			if err == sharedkernel.ErrAnotherUserOrder {
+				writer.WriteHeader(http.StatusConflict) // 409
+
+				return
+			}
+
+			if err == sharedkernel.ErrIncorrectOrderNumber {
+				writer.WriteHeader(http.StatusUnprocessableEntity) // 422
+
+				return
+			}
+
+			writer.WriteHeader(http.StatusInternalServerError) // 500
 
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		writer.WriteHeader(http.StatusAccepted) // 202
 	}
 }
 

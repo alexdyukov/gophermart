@@ -143,8 +143,17 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 }
 
 func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order core.UserOrderNumber) error {
-	exists, err := orderExists(ctx, gdb.DB, order.Number)
+	exists, usrId, err := orderExists(ctx, gdb.DB, order.Number)
 	if err != nil || exists {
+
+		if exists {
+
+			if usrId != order.User {
+				return sharedkernel.ErrAnotherUserOrder
+			}
+
+			return sharedkernel.ErrOrderExists
+		}
 		return err
 	}
 	tx, err := gdb.Begin()
@@ -203,18 +212,20 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 	return nil
 }
 
-func orderExists(ctx context.Context, db *sql.DB, orderNumber int) (bool, error) {
+func orderExists(ctx context.Context, db *sql.DB, orderNumber int) (bool, string, error) {
 	var id int
+	var userID string
+
 	const selectSQL = `
-SELECT orderNumber FROM user_orders WHERE orderNumber = $1;
+SELECT orderNumber, userID FROM user_orders WHERE orderNumber = $1;
 `
-	err := db.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&id)
+	err := db.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&id, &userID)
 	switch err {
 	case sql.ErrNoRows:
-		return false, nil
+		return false, userID, nil
 	case nil:
-		return true, nil
+		return true, userID, nil
 	default:
-		return false, err
+		return false, userID, err
 	}
 }

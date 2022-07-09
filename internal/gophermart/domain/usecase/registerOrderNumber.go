@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
@@ -46,6 +47,10 @@ func NewLoadOrderNumber(repo RegisterUserOrderRepository, gw CalculationStateGat
 }
 
 func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sharedkernel.User) error {
+	if !sharedkernel.ValidLuhn(strconv.Itoa(number)) {
+		return sharedkernel.ErrIncorrectOrderNumber
+	}
+
 	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
 	if err != nil {
 		return err // nolint:wrapcheck // ok
