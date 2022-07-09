@@ -61,8 +61,12 @@ func (acc *Account) CurrentBalance() sharedkernel.Money {
 }
 
 func (acc *Account) WithdrawalsSum() sharedkernel.Money {
+	var result sharedkernel.Money
+	for _, line := range acc.withdrawHistory {
+		result += line.Amount
+	}
 	// return cached sum or calculate on fly
-	return 0
+	return result
 }
 
 func (acc *Account) Add(amount sharedkernel.Money) {
