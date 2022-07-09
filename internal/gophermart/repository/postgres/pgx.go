@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
-
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
