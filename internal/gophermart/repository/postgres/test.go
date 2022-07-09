@@ -39,8 +39,9 @@ func (gdb *GophermartDB) SaveUserAccountTest(ctx context.Context, userId string,
 }
 
 func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOrder int, sum float32, status sharedkernel.Status, date time.Time) error {
-	exists, err := orderExists(ctx, gdb.DB, numOrder)
+	exists, usrId, err := orderExists(ctx, gdb.DB, numOrder)
 	if err != nil || exists {
+		fmt.Println(usrId)
 		return err
 	}
 
@@ -71,19 +72,21 @@ func (gdb *GophermartDB) SaveWithdrawalsTest(ctx context.Context, userId string,
 }
 
 // userExists looks up a user by ID.
-func orderExists(ctx context.Context, db *sql.DB, orderNumber int) (bool, error) {
+func orderExists(ctx context.Context, db *sql.DB, orderNumber int) (bool, string, error) {
 	var id int
+	var userID string
+
 	const selectSQL = `
-SELECT orderNumber FROM user_orders WHERE orderNumber = $1;
+SELECT orderNumber, userID FROM user_orders WHERE orderNumber = $1;
 `
-	err := db.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&id)
+	err := db.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&id, &userID)
 	switch err {
 	case sql.ErrNoRows:
-		return false, nil
+		return false, userID, nil
 	case nil:
-		return true, nil
+		return true, userID, nil
 	default:
-		return false, err
+		return false, userID, err
 	}
 }
 

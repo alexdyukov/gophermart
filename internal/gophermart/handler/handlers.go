@@ -48,15 +48,28 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 			return
 		}
 
+		// проверяем на алгоритм луна, если не проходит значит посылем в пень
+
 		err = registerUserOrderUsecase.Execute(request.Context(), orderNumber, user)
 		if err != nil {
 			log.Println(err)
+			if err == sharedkernel.ErrOrderExists {
+				writer.WriteHeader(http.StatusOK)
+
+				return
+			}
+			if err == sharedkernel.ErrAnotherUserOrder {
+				writer.WriteHeader(http.StatusConflict)
+
+				return
+			}
+
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		writer.WriteHeader(http.StatusAccepted)
 	}
 }
 

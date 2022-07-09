@@ -16,6 +16,8 @@ const (
 )
 
 var ErrBadStatus = errors.New("wrong status, not supported")
+var ErrOrderExists = errors.New("Order exists")
+var ErrAnotherUserOrder = errors.New("This is anoter user's order")
 
 func (status Status) String() string {
 	return [...]string{"NEW", "PROCESSING", "INVALID", "PROCESSED"}[status-1]

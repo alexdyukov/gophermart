@@ -135,8 +135,17 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 }
 
 func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order core.UserOrderNumber) error {
-	exists, err := orderExists(ctx, gdb.DB, order.Number)
+	exists, usrId, err := orderExists(ctx, gdb.DB, order.Number)
 	if err != nil || exists {
+
+		if exists {
+
+			if usrId != order.User {
+				return sharedkernel.ErrAnotherUserOrder
+			}
+
+			return sharedkernel.ErrOrderExists
+		}
 		return err
 	}
 	tx, err := gdb.Begin()
