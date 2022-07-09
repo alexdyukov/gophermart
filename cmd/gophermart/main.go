@@ -1,15 +1,8 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
-	"log"
-	"net/http"
-	"time"
-
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
-
 	"github.com/alexdyukov/gophermart/internal/gophermart/config"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/gateway/web"
@@ -18,6 +11,8 @@ import (
 	"github.com/go-chi/chi"
 	chiMiddleware "github.com/go-chi/chi/middleware"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"log"
+	"net/http"
 )
 
 func main() { // nolint:funlen // ok
@@ -46,19 +41,20 @@ func main() { // nolint:funlen // ok
 		log.Fatal(err)
 	}
 
-	idUser := "057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b"
-	//	gophermartStore.SaveUser(ctx, "Oesya", "Olesya", idUser)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 888355533, 350, sharedkernel.PROCESSED, time.Date(2019, time.May, 15, 17, 45, 12, 0, time.Local))
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 324235553, 200, sharedkernel.NEW, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 988355568, 200, sharedkernel.PROCESSING, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 104535323, 200, sharedkernel.PROCESSED, time.Date(2018, time.May, 15, 17, 45, 12, 0, time.Local))
+	//idUser := "057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b"
+	////	gophermartStore.SaveUser(ctx, "Oesya", "Olesya", idUser)
+	//ctx, cancel := context.WithCancel(context.Background())
+	//defer cancel()
 
-	err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 999999999, 50, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
-	err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 1000000, 60, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
-
-	err = gophermartStore.SaveUserAccountTest(ctx, idUser, 550, 110)
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 888355533, 350, sharedkernel.PROCESSED, time.Date(2019, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 324235553, 200, sharedkernel.NEW, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 988355568, 200, sharedkernel.PROCESSING, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 104535323, 200, sharedkernel.PROCESSED, time.Date(2018, time.May, 15, 17, 45, 12, 0, time.Local))
+	//
+	//err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 999999999, 50, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 1000000, 60, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//
+	//err = gophermartStore.SaveUserAccountTest(ctx, idUser, 550, 110)
 
 	if err != nil {
 		fmt.Println("ошибка при записи заказа ", err)
