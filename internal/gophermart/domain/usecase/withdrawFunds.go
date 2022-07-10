@@ -48,7 +48,6 @@ func (wuf *WithdrawUserFunds) Execute(
 	}
 
 	OrderNumberInt, err := strconv.ParseInt(dto.Order, base, 64)
-
 	if err != nil {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
@@ -57,7 +56,14 @@ func (wuf *WithdrawUserFunds) Execute(
 		return err
 	}
 
-	// do work with account
+	// do work with account, check if there is such number order in withdrarwals
+	sliceAccountWithdrawals := core.GetSliceAccountWithdrawals(&account)
+	for _, withdraw := range *sliceAccountWithdrawals {
+		if withdraw.OrderNumber == OrderNumberInt {
+			return sharedkernel.ErrIncorrectOrderNumber
+		}
+	}
+
 	err = account.WithdrawPoints(OrderNumberInt, dto.Sum)
 	if err != nil {
 		return sharedkernel.ErrInsufficientFunds

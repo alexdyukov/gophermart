@@ -236,7 +236,7 @@ func (gdb *GophermartDB) saveToTableUserOrders(
 		return err
 	}
 
-	//uid TEXT NOT NULL,
+	// uid TEXT NOT NULL,
 	//	orderNumber	bigint NOT NULL,
 	//	userID TEXT,
 	//	status INT  NOT NULL,
@@ -310,7 +310,6 @@ func (gdb *GophermartDB) saveToTableUserAccount(
 }
 
 func (gdb *GophermartDB) createTablesIfNotExist() error {
-
 	_, err := gdb.Exec(`CREATE TABLE IF NOT EXISTS public.user_orders (
     											uid TEXT NOT NULL,
      											orderNumber	bigint NOT NULL, 
@@ -335,7 +334,6 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												PRIMARY KEY (userID)
 												);
 												`)
-
 	if err != nil {
 		log.Printf("не смогли создать таблицы, ошибка : ", err)
 		return err // nolint:wrapcheck // ok

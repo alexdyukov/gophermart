@@ -10,13 +10,11 @@ import (
 )
 
 func (gdb *GophermartDB) SaveUserAccountTest(ctx context.Context, userId string, accrual sharedkernel.Money, withdrawal float32) error {
-
 	fmt.Println("пытаемся сохранить баланс по аккаунту пользователя: ", userId)
 
-	//insertSQL := `INSERT INTO user_account VALUES ($1, $2, $3, $4)
-	//ON CONFLICT (uid,userId) DO UPDATE SET accrual = $3 , withdrawal = $4 ;`
+	// insertSQL := `INSERT INTO user_account VALUES ($1, $2, $3, $4)
+	// ON CONFLICT (uid,userId) DO UPDATE SET accrual = $3 , withdrawal = $4 ;`
 	tx, err := gdb.Begin()
-
 	if err != nil {
 		return err
 	}
@@ -44,7 +42,6 @@ func (gdb *GophermartDB) SaveUserAccountTest(ctx context.Context, userId string,
 	}
 
 	return nil
-
 }
 
 func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOrder int64, sum sharedkernel.Money, status sharedkernel.Status, date time.Time) error {
@@ -82,7 +79,6 @@ func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOr
 }
 
 func (gdb *GophermartDB) SaveWithdrawalsTest(ctx context.Context, userId string, numOrder int64, sum sharedkernel.Money, date time.Time) error {
-
 	fmt.Println("пытаемся сохранить отоваривание по заказу : ", numOrder)
 
 	trx, err := gdb.Begin()
@@ -106,5 +102,4 @@ func (gdb *GophermartDB) SaveWithdrawalsTest(ctx context.Context, userId string,
 	}
 
 	return nil
-
 }
