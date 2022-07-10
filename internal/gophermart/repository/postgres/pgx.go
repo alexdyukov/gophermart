@@ -151,7 +151,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 
 	trx, err := gdb.Begin()
 	if err != nil {
-		log.Printf("SaveUserOrder: какая-то ошибка связанная с  началом транзакции: ", err)
+		log.Printf("SaveUserOrder: какая-то ошибка связанная с  началом транзакции:", err)
 		return err
 	}
 
