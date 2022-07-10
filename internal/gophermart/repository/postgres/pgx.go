@@ -135,6 +135,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	return *acc, nil
 }
 
+// nolint:cyclop // ok
 func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrderNumber) error {
 	exists, usrID, err := orderExists(ctx, gdb.DB, order.Number)
 	if err != nil || exists {
@@ -166,6 +167,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 	if err != nil {
 		return err
 	}
+
 	if !exists {
 		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), order.User, 0)
 		if err != nil {
