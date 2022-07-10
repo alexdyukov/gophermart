@@ -167,7 +167,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		return err
 	}
 	if !exists {
-		log.Printf("создаем аккаунт для пользователя %v, так как его нет", usrID)
+		log.Printf("создаем аккаунт для пользователя %v, так как его нет", order.User)
 		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), order.User, 0)
 		if err != nil {
 			return err
