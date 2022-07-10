@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -271,6 +272,7 @@ func (gdb *GophermartDB) saveToTableUserWithdrawals(
 		return err
 	}
 
+	fmt.Println("у этого списания orderNumber: ", orderNumber)
 	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID, sum, dateAndTime)
 
 	if err != nil {

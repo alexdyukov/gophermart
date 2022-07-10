@@ -20,7 +20,7 @@ type (
 
 	// WithdrawUserFundsInputDTO Example of DTO with json at usecase level, which not quite correct.
 	WithdrawUserFundsInputDTO struct {
-		Order int64              `json:"order"`
+		Order string             `json:"order"`
 		Sum   sharedkernel.Money `json:"sum"`
 	}
 
@@ -43,17 +43,22 @@ func (wuf *WithdrawUserFunds) Execute(
 	//
 	const base = 10
 
-	if !sharedkernel.ValidLuhn(strconv.FormatInt(dto.Order, base)) {
+	if !sharedkernel.ValidLuhn(dto.Order) {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
 
+	OrderNumberInt, err := strconv.ParseInt(dto.Order, base, 64)
+
+	if err != nil {
+		return sharedkernel.ErrIncorrectOrderNumber
+	}
 	account, err := wuf.Repo.FindAccountByID(ctx, user.ID())
 	if err != nil {
 		return err
 	}
 
 	// do work with account
-	err = account.WithdrawPoints(dto.Order, dto.Sum)
+	err = account.WithdrawPoints(OrderNumberInt, dto.Sum)
 	if err != nil {
 		return sharedkernel.ErrInsufficientFunds
 	}
