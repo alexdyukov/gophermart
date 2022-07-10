@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -146,6 +147,7 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 // 500 — внутренняя ошибка сервера.
 func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println("#PostWithdraw: пришел запрос  POST /api/user/balance/withdraw")
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized) // 401
@@ -165,6 +167,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 			log.Println(err)
 		}
 
+		fmt.Printf("#PostWithdraw: вот такой пользователь %v, такая структура :%v ", user, dto)
 		err = withdrawFundsUsecase.Execute(request.Context(), user, dto)
 		if err != nil {
 			if errors.Is(err, sharedkernel.ErrIncorrectOrderNumber) {
