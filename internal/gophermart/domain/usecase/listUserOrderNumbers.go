@@ -13,12 +13,18 @@ import (
 type (
 	ListUserOrdersRepository interface {
 		FindAllOrders(context.Context, string) ([]core.UserOrderNumber, error)
+		SaveUserOrder(context.Context, *core.UserOrderNumber) error
 	}
 
 	ListUserOrdersPrimaryPort interface {
 		Execute(context.Context, *sharedkernel.User) ([]ListUserOrdersOutputDTO, error)
 	}
 
+	ListCalculationStateGateway interface {
+		GetOrderCalculationState(int64) (*CalculationStateDTO, error)
+	}
+
+	// CalculationStateDTO is secondary DTO
 	ListUserOrdersOutputDTO struct {
 		UploadedAt    time.Time          `json:"-"`
 		UploadedAtStr string             `json:"uploaded_at"` // nolint:tagliatelle // ok
@@ -28,27 +34,58 @@ type (
 	}
 
 	ListUserOrders struct {
-		Repo ListUserOrdersRepository
+		Repo           ListUserOrdersRepository
+		ServiceGateway ListCalculationStateGateway
 	}
 )
 
-func NewListUserOrders(repo ListUserOrdersRepository) *ListUserOrders {
+func NewListUserOrders(repo ListUserOrdersRepository, gw ListCalculationStateGateway) *ListUserOrders {
 	return &ListUserOrders{
-		Repo: repo,
+		Repo:           repo,
+		ServiceGateway: gw,
 	}
 }
 
 func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
+	// Получили все заказы, пробуем обновить их статусы.
 	orders, err := l.Repo.FindAllOrders(ctx, user.ID())
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println(orders)
-
 	lstOrdNumsDTO := make([]ListUserOrdersOutputDTO, 0, len(orders))
 
 	for _, order := range orders {
+		log.Printf("GetOrderCalculationState пробуем отправлять номер заказа %v для проверки в accrual ", order.Number)
+		inputDTO, err := l.ServiceGateway.GetOrderCalculationState(order.Number)
+		if err != nil {
+			log.Printf("GetOrderCalculationState получили ошибку %v", err)
+			log.Printf("%v", err)
+		}
+
+		if inputDTO == nil {
+			log.Printf("GetOrderCalculationState пустая inputDTO, выполняем continue")
+			continue
+		}
+
+		log.Printf("inputDTO содежит такие данные %v, обновим данные по заказу в БД", inputDTO)
+		userOrder := core.NewOrderNumber(order.Number, inputDTO.Accrual, user.ID(), inputDTO.Status)
+
+		err = l.Repo.SaveUserOrder(ctx, &userOrder)
+		if err != nil {
+			log.Printf("GetOrderCalculationState вышла ошибка при обовлении данных по заказу в БД", err)
+			continue
+		}
+	}
+
+	//это функция была...
+	orders, err = l.Repo.FindAllOrders(ctx, user.ID())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, order := range orders {
+
 		lstOrdNumsDTO = append(lstOrdNumsDTO, ListUserOrdersOutputDTO{
 			Number:        strconv.FormatInt(order.Number, 10),
 			Status:        order.Status.String(),
