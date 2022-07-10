@@ -13,7 +13,8 @@ type AppError struct {
 var (
 	ErrOrderExists          = errors.New("order exists")
 	ErrAnotherUserOrder     = errors.New("this is anoter user's order")
-	ErrIncorrectOrderNumber = errors.New("incorrect order number ")
+	ErrIncorrectOrderNumber = errors.New("incorrect order number")
+	ErrInsufficientFunds    = errors.New("insufficient funds")
 )
 
 func (e *AppError) Error() string {

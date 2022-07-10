@@ -56,13 +56,25 @@ func GetSliceAccountWithdrawals(acc *Account) *[]AccountWithdrawals {
 	return &acc.withdrawHistory
 }
 
+func (acc *Account) CurrentID() string {
+	return acc.id
+}
+
+func (acc *Account) CurrentUserID() string {
+	return acc.user
+}
+
 func (acc *Account) CurrentBalance() sharedkernel.Money {
 	return acc.balance
 }
 
 func (acc *Account) WithdrawalsSum() sharedkernel.Money {
+	var result sharedkernel.Money
+	for _, line := range acc.withdrawHistory {
+		result += line.Amount
+	}
 	// return cached sum or calculate on fly
-	return 0
+	return result
 }
 
 func (acc *Account) Add(amount sharedkernel.Money) {

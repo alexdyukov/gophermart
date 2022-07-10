@@ -127,8 +127,8 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
+		writer.Header().Set("Content-Type", "application/json")
 
 		_, err = writer.Write(response)
 		if err != nil {
@@ -148,7 +148,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
-			writer.WriteHeader(http.StatusUnauthorized)
+			writer.WriteHeader(http.StatusUnauthorized) // 401
 
 			return
 		}
@@ -167,17 +167,29 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 
 		err = withdrawFundsUsecase.Execute(request.Context(), user, dto)
 		if err != nil {
+			if errors.Is(err, sharedkernel.ErrIncorrectOrderNumber) {
+				writer.WriteHeader(http.StatusUnprocessableEntity) // 422
+
+				return
+			}
+
+			if errors.Is(err, sharedkernel.ErrInsufficientFunds) {
+				writer.WriteHeader(http.StatusPaymentRequired) // 402
+
+				return
+			}
+
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError)
+			writer.WriteHeader(http.StatusInternalServerError) // 500
 
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		writer.WriteHeader(http.StatusOK) // 200
 	}
 }
 
-// GetWithdrawals GET /api/user/balance/withdrawals — получение информации о выводе средств с накопительного счёта
+// GetWithdrawals GET /api/user/withdrawals — получение информации о выводе средств с накопительного счёта
 // 200 — успешная обработка запроса;
 // 204 — нет ни одного списания.
 // 401 — пользователь не авторизован.

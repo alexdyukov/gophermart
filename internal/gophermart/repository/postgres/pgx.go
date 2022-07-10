@@ -32,15 +32,8 @@ func NewGophermartDB(conn *sql.DB) (*GophermartDB, error) {
 func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.UserOrderNumber, error) {
 	result := make([]core.UserOrderNumber, 0)
 
-	query := `
-	SELECT
-	uid,
-	orderNumber,
-	status,
-	accrual,
-	dateAndTime
-	FROM public.user_orders
-	WHERE userID = $1
+	query := `SELECT uid, orderNumber, status,	accrual,dateAndTime
+	FROM public.user_orders WHERE userID = $1
  	ORDER BY dateAndTime
 	`
 
@@ -142,6 +135,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	return *acc, nil
 }
 
+// nolint:cyclop // ok
 func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrderNumber) error {
 	exists, usrID, err := orderExists(ctx, gdb.DB, order.Number)
 	if err != nil || exists {
@@ -161,18 +155,24 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		return err
 	}
 
-	stmt, err := trx.PrepareContext(ctx, `
-	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
-	`)
+	defer trx.Rollback() // nolint:errcheck // ok
+
+	err = gdb.saveToTableUserOrders(ctx, trx, order.ID, order.User, order.Number,
+		order.Status, order.Accrual, order.DateAndTime)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.ExecContext(ctx, order.ID, order.Number, order.User,
-		order.Status, order.Accrual, order.DateAndTime)
-
+	exists, err = accountExists(ctx, gdb.DB, usrID)
 	if err != nil {
 		return err
+	}
+
+	if !exists {
+		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), order.User, 0)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = trx.Commit()
@@ -184,8 +184,119 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 	return nil
 }
 
-func (gdb *GophermartDB) SaveAccount(context.Context, core.Account) error {
-	// Store core.Account into database
+func (gdb *GophermartDB) SaveAccount(ctx context.Context, acc *core.Account) error {
+	balance := acc.CurrentBalance()
+	uid := acc.CurrentID()
+	userID := acc.CurrentUserID()
+
+	trx, err := gdb.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer trx.Rollback() // nolint:errcheck // ok
+
+	err = gdb.saveToTableUserAccount(ctx, trx, uid, userID, balance)
+
+	sliceAccountWithdrawals := core.GetSliceAccountWithdrawals(acc)
+
+	if err != nil {
+		return err
+	}
+
+	for _, withdraw := range *sliceAccountWithdrawals {
+		err = gdb.saveToTableUserWithdrawals(ctx, trx, withdraw.ID, userID, withdraw.OrderNumber,
+			withdraw.Amount, withdraw.OperationTime)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = trx.Commit() // шаг 4 — сохраняем изменения
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gdb *GophermartDB) saveToTableUserOrders(
+	ctx context.Context,
+	trx *sql.Tx,
+	uid string,
+	userID string,
+	orderNumber int64,
+	status sharedkernel.Status,
+	sum sharedkernel.Money,
+	dateAndTime time.Time,
+) error {
+	//
+	stmt, err := trx.PrepareContext(ctx, `
+	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6)
+	ON CONFLICT (orderNumber, userID) DO UPDATE SET status =$4, accrual = $5, dateAndTime = $6;
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID,
+		status, sum, dateAndTime)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gdb *GophermartDB) saveToTableUserWithdrawals(
+	ctx context.Context,
+	trx *sql.Tx,
+	uid string,
+	userID string,
+	orderNumber int64,
+	sum sharedkernel.Money,
+	dateAndTime time.Time,
+) error {
+	//
+	stmt, err := trx.PrepareContext(ctx, `
+	INSERT INTO user_withdrawals VALUES ($1, $2, $3, $4, $5)
+	ON CONFLICT (orderNumber, userID) DO NOTHING;
+	`) // if we are find withdrawal don't rewrite it
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID, sum, dateAndTime)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gdb *GophermartDB) saveToTableUserAccount(
+	ctx context.Context,
+	trx *sql.Tx,
+	uid string,
+	userID string,
+	balance sharedkernel.Money,
+) error {
+	//
+	stmt, err := trx.PrepareContext(ctx, `
+	INSERT INTO user_account VALUES ($1, $2, $3)
+	ON CONFLICT (userID) DO UPDATE SET balance =$3;`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, uid, userID, balance)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -197,7 +308,7 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												status INT  NOT NULL,
 												accrual		numeric,
 												dateAndTime	timestamp,
-												PRIMARY KEY (uid)
+												PRIMARY KEY (userID,orderNumber)
 												);
 								CREATE TABLE IF NOT EXISTS public.user_withdrawals (
 								    			uid TEXT NOT NULL,
@@ -205,14 +316,13 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												userID TEXT,
 												amount		numeric,
 												dateAndTime	timestamp,
-												PRIMARY KEY (uid)
+												PRIMARY KEY (userID,orderNumber)
 												);
 	CREATE TABLE IF NOT EXISTS public.user_account (
 								    			uid TEXT NOT NULL,
-												userID TEXT,
+												userID TEXT NOT NULL,
 												balance		numeric,
-												withdrawal	numeric,
-												PRIMARY KEY (uid, userID)
+												PRIMARY KEY (userID)
 												);
 												`)
 	if err != nil {
@@ -242,4 +352,21 @@ SELECT orderNumber, userID FROM public.user_orders WHERE orderNumber = $1;`
 	}
 
 	return true, userID, nil
+}
+
+func accountExists(ctx context.Context, gdb *sql.DB, userID string) (bool, error) {
+	//
+	const selectSQL = `
+	SELECT userID FROM public.user_account WHERE userID = $1;`
+
+	err := gdb.QueryRowContext(ctx, selectSQL, userID).Scan(&userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
