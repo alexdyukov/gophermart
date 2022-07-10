@@ -127,8 +127,8 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
+		writer.Header().Set("Content-Type", "application/json")
 
 		_, err = writer.Write(response)
 		if err != nil {
