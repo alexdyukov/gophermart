@@ -23,6 +23,7 @@ import (
 // 500 — внутренняя ошибка сервера.
 func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserOrderPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+
 		log.Println("BEGIN egisterUserOrderPostHandler POST /api/user/orders")
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
