@@ -162,6 +162,17 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		return err
 	}
 
+	exists, err = accountExists(ctx, gdb.DB, usrID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), order.User, 0)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = trx.Commit()
 
 	if err != nil {
@@ -339,4 +350,21 @@ SELECT orderNumber, userID FROM public.user_orders WHERE orderNumber = $1;`
 	}
 
 	return true, userID, nil
+}
+
+func accountExists(ctx context.Context, gdb *sql.DB, userID string) (bool, error) {
+	//
+	const selectSQL = `
+	SELECT userID FROM public.user_account WHERE userID = $1;`
+
+	err := gdb.QueryRowContext(ctx, selectSQL, userID).Scan(&userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
