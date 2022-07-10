@@ -41,27 +41,30 @@ func (wuf *WithdrawUserFunds) Execute(
 	dto WithdrawUserFundsInputDTO,
 ) error {
 	//
-	const (
-		base    = 10
-		bitSize = 64
-	)
+	const base = 10
 
 	if !sharedkernel.ValidLuhn(dto.Order) {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
 
-	orderNumberInt, err := strconv.ParseInt(dto.Order, base, bitSize)
+	OrderNumberInt, err := strconv.ParseInt(dto.Order, base, 64)
 	if err != nil {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
-
 	account, err := wuf.Repo.FindAccountByID(ctx, user.ID())
 	if err != nil {
 		return err
 	}
 
-	// do work with account
-	err = account.WithdrawPoints(orderNumberInt, dto.Sum)
+	// do work with account, check if there is such number order in withdrarwals
+	sliceAccountWithdrawals := core.GetSliceAccountWithdrawals(&account)
+	for _, withdraw := range *sliceAccountWithdrawals {
+		if withdraw.OrderNumber == OrderNumberInt {
+			return sharedkernel.ErrIncorrectOrderNumber
+		}
+	}
+
+	err = account.WithdrawPoints(OrderNumberInt, dto.Sum)
 	if err != nil {
 		return sharedkernel.ErrInsufficientFunds
 	}
