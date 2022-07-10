@@ -69,6 +69,8 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number string, user *
 			Order:   number,
 			Status:  sharedkernel.NEW,
 		}
+	} else {
+		log.Printf("#ListUserOrdersGetHandler: получили данные из accrual по переданному заказу: ", inputDTO)
 	}
 
 	userOrder := core.NewOrderNumber(orderNumber, inputDTO.Accrual, user.ID(), inputDTO.Status)

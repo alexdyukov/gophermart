@@ -24,7 +24,7 @@ import (
 func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserOrderPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 
-		log.Println("BEGIN egisterUserOrderPostHandler POST /api/user/orders")
+		log.Println("BEGIN #RegisterUserOrderPostHandler: POST /api/user/orders")
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -100,7 +100,7 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 
 			return
 		}
-		log.Println("END ListUserOrdersGetHandler GET /api/user/orders")
+
 	}
 }
 
@@ -141,7 +141,7 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 		if err != nil {
 			log.Println(err)
 		}
-		log.Println("END GetBalance GET /api/user/balance")
+
 	}
 }
 
@@ -197,7 +197,6 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 
 		writer.WriteHeader(http.StatusOK) // 200
 
-		log.Println("BEGIN PostWithdraw POST /api/user/balance/withdraw")
 	}
 }
 

@@ -56,7 +56,7 @@ func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) (
 	lstOrdNumsDTO := make([]ListUserOrdersOutputDTO, 0, len(orders))
 
 	for _, order := range orders {
-		log.Printf("GetOrderCalculationState пробуем отправлять номер заказа %v для проверки в accrual ", order.Number)
+		log.Printf("#ListUserOrdersGetHandler пробуем отправлять номер заказа %v для проверки в accrual ", order.Number)
 		inputDTO, err := l.ServiceGateway.GetOrderCalculationState(order.Number)
 		if err != nil {
 			log.Printf("GetOrderCalculationState получили ошибку %v", err)
@@ -64,16 +64,18 @@ func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) (
 		}
 
 		if inputDTO == nil {
-			log.Printf("GetOrderCalculationState пустая inputDTO, выполняем continue")
+			log.Printf("#ListUserOrdersGetHandler пустая inputDTO, выполняем continue")
 			continue
 		}
 
-		log.Printf("inputDTO содежит такие данные %v, обновим данные по заказу в БД", inputDTO)
+		log.Printf("#ListUserOrdersGetHandler: получили данные из accrual по переданному заказу: ", inputDTO)
+
 		userOrder := core.NewOrderNumber(order.Number, inputDTO.Accrual, user.ID(), inputDTO.Status)
+		log.Println("#RegisterUserOrderPostHandler вот такая структура userOrder:", userOrder)
 
 		err = l.Repo.SaveUserOrder(ctx, &userOrder)
 		if err != nil {
-			log.Printf("GetOrderCalculationState вышла ошибка при обовлении данных по заказу в БД", err)
+			log.Printf("ListUserOrdersGetHandler вышла ошибка при обовлении данных по заказу в БД", err)
 			continue
 		}
 	}

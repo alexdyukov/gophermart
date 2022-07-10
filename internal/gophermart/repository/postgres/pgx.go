@@ -151,6 +151,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 
 	trx, err := gdb.Begin()
 	if err != nil {
+		log.Printf("SaveUserOrder: какая-то ошибка связанная с  началом транзакции: ", err)
 		return err
 	}
 
@@ -159,6 +160,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 	err = gdb.saveToTableUserOrders(ctx, trx, order.ID, order.User, order.Number,
 		order.Status, order.Accrual, order.DateAndTime)
 	if err != nil {
+		log.Printf("SaveUserOrder: Ошибка при сохранении в таблицу user_orders: ", err)
 		return err
 	}
 
@@ -170,6 +172,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		log.Printf("создаем аккаунт для пользователя %v, так как его нет", order.User)
 		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), order.User, 0)
 		if err != nil {
+			log.Printf("SaveUserOrder: Ошибка при сохранении в таблицу user_account: ", err)
 			return err
 		}
 	}
@@ -177,6 +180,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 	err = trx.Commit()
 
 	if err != nil {
+		log.Printf("SaveUserOrder: какая-то ошибка связанная с транзакцией(РАЗБЕРИСЬ): ", err)
 		return err
 	}
 
