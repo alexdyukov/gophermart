@@ -32,15 +32,8 @@ func NewGophermartDB(conn *sql.DB) (*GophermartDB, error) {
 func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.UserOrderNumber, error) {
 	result := make([]core.UserOrderNumber, 0)
 
-	query := `
-	SELECT
-	uid,
-	orderNumber,
-	status,
-	accrual,
-	dateAndTime
-	FROM public.user_orders
-	WHERE userID = $1
+	query := `SELECT uid, orderNumber, status,	accrual,dateAndTime
+	FROM public.user_orders WHERE userID = $1
  	ORDER BY dateAndTime
 	`
 
@@ -227,8 +220,8 @@ func (gdb *GophermartDB) saveToTableUserOrders(
 ) error {
 	//
 	stmt, err := trx.PrepareContext(ctx, `
-	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
-	ON CONFLICT (orderNumber, userID) DO UPDATE SET status =$4, accrual = $5, accrual = $6;
+	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6)
+	ON CONFLICT (orderNumber, userID) DO UPDATE SET status =$4, accrual = $5, dateAndTime = $6;
 	`)
 	if err != nil {
 		return err
@@ -255,7 +248,7 @@ func (gdb *GophermartDB) saveToTableUserWithdrawals(
 ) error {
 	//
 	stmt, err := trx.PrepareContext(ctx, `
-	INSERT INTO user_withdrawals VALUES ($1, $2, $3, $4, $5);
+	INSERT INTO user_withdrawals VALUES ($1, $2, $3, $4, $5)
 	ON CONFLICT (orderNumber, userID) DO NOTHING;
 	`) // if we are find withdrawal don't rewrite it
 	if err != nil {
@@ -263,7 +256,6 @@ func (gdb *GophermartDB) saveToTableUserWithdrawals(
 	}
 
 	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID, sum, dateAndTime)
-
 	if err != nil {
 		return err
 	}
@@ -280,8 +272,8 @@ func (gdb *GophermartDB) saveToTableUserAccount(
 ) error {
 	//
 	stmt, err := trx.PrepareContext(ctx, `
-	INSERT INTO user_account VALUES ($1, $2, $3);
-	ON CONFLICT (orderNumber, userID) DO UPDATE SET balance =$3;`)
+	INSERT INTO user_account VALUES ($1, $2, $3)
+	ON CONFLICT (userID) DO UPDATE SET balance =$3;`)
 	if err != nil {
 		return err
 	}
@@ -303,7 +295,7 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												status INT  NOT NULL,
 												accrual		numeric,
 												dateAndTime	timestamp,
-												PRIMARY KEY (orderNumber, userID)
+												PRIMARY KEY (userID,orderNumber)
 												);
 								CREATE TABLE IF NOT EXISTS public.user_withdrawals (
 								    			uid TEXT NOT NULL,
@@ -311,12 +303,12 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												userID TEXT,
 												amount		numeric,
 												dateAndTime	timestamp,
-												PRIMARY KEY (orderNumber, userID)
+												PRIMARY KEY (userID,orderNumber)
 												);
 	CREATE TABLE IF NOT EXISTS public.user_account (
 								    			uid TEXT NOT NULL,
-												userID TEXT,
-												balance		numeric
+												userID TEXT NOT NULL,
+												balance		numeric,
 												PRIMARY KEY (userID)
 												);
 												`)

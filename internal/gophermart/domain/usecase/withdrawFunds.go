@@ -41,13 +41,16 @@ func (wuf *WithdrawUserFunds) Execute(
 	dto WithdrawUserFundsInputDTO,
 ) error {
 	//
-	const base = 10
+	const (
+		base    = 10
+		bitSize = 64
+	)
 
 	if !sharedkernel.ValidLuhn(dto.Order) {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
 
-	OrderNumberInt, err := strconv.ParseInt(dto.Order, base, 64)
+	orderNumberInt, err := strconv.ParseInt(dto.Order, base, bitSize)
 	if err != nil {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
@@ -58,7 +61,7 @@ func (wuf *WithdrawUserFunds) Execute(
 	}
 
 	// do work with account
-	err = account.WithdrawPoints(OrderNumberInt, dto.Sum)
+	err = account.WithdrawPoints(orderNumberInt, dto.Sum)
 	if err != nil {
 		return sharedkernel.ErrInsufficientFunds
 	}
