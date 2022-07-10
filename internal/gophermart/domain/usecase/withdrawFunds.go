@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
@@ -39,6 +40,11 @@ func (wuf *WithdrawUserFunds) Execute(
 	user *sharedkernel.User,
 	dto WithdrawUserFundsInputDTO,
 ) error { // nolint:whitespace // ok
+
+	if !sharedkernel.ValidLuhn(strconv.FormatInt(dto.Order, 64)) {
+		return sharedkernel.ErrIncorrectOrderNumber
+	}
+
 	account, err := wuf.Repo.FindAccountByID(ctx, user.ID())
 	if err != nil {
 		return err
@@ -47,7 +53,7 @@ func (wuf *WithdrawUserFunds) Execute(
 	// do work with account
 	err = account.WithdrawPoints(dto.Order, dto.Sum)
 	if err != nil {
-		return err
+		return sharedkernel.ErrInsufficientFunds
 	}
 
 	err = wuf.Repo.SaveAccount(ctx, account)

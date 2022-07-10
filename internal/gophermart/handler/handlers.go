@@ -148,7 +148,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 	return func(writer http.ResponseWriter, request *http.Request) {
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
-			writer.WriteHeader(http.StatusUnauthorized)
+			writer.WriteHeader(http.StatusUnauthorized) // 401
 
 			return
 		}
@@ -167,13 +167,25 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 
 		err = withdrawFundsUsecase.Execute(request.Context(), user, dto)
 		if err != nil {
+			if errors.Is(err, sharedkernel.ErrIncorrectOrderNumber) {
+				writer.WriteHeader(http.StatusUnprocessableEntity) // 422
+
+				return
+			}
+
+			if errors.Is(err, sharedkernel.ErrInsufficientFunds) {
+				writer.WriteHeader(http.StatusPaymentRequired) // 402
+
+				return
+			}
+
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError)
+			writer.WriteHeader(http.StatusInternalServerError) // 500
 
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		writer.WriteHeader(http.StatusOK) // 200
 	}
 }
 

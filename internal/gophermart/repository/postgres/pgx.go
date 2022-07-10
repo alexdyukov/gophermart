@@ -161,16 +161,10 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		return err
 	}
 
-	stmt, err := trx.PrepareContext(ctx, `
-	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
-	`)
-	if err != nil {
-		return err
-	}
+	defer trx.Rollback()
 
-	_, err = stmt.ExecContext(ctx, order.ID, order.Number, order.User,
+	err = gdb.saveToTableUserOrders(ctx, trx, order.ID, order.User, order.Number,
 		order.Status, order.Accrual, order.DateAndTime)
-
 	if err != nil {
 		return err
 	}
@@ -184,8 +178,108 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 	return nil
 }
 
-func (gdb *GophermartDB) SaveAccount(context.Context, core.Account) error {
-	// Store core.Account into database
+func (gdb *GophermartDB) SaveAccount(ctx context.Context, acc *core.Account) error {
+
+	balance := acc.CurrentBalance()
+	uid := acc.CurrentID()
+	userID := acc.CurrentUserID()
+
+	trx, err := gdb.Begin() // шаг 1 — объявляем транзакцию
+	if err != nil {
+		return err
+	}
+
+	defer trx.Rollback() // шаг 1.1 — если возникает ошибка, откатываем изменения
+
+	err = gdb.saveToTableUserAccount(ctx, trx, uid, userID, balance)
+
+	sliceAccountWithdrawals := core.GetSliceAccountWithdrawals(acc)
+	if err != nil {
+		return err
+	}
+
+	for _, withdraw := range *sliceAccountWithdrawals {
+		err = gdb.saveToTableUserWithdrawals(ctx, trx, withdraw.ID, userID, withdraw.OrderNumber,
+			withdraw.Amount, withdraw.OperationTime)
+	}
+
+	err = trx.Commit() // шаг 4 — сохраняем изменения
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (gdb *GophermartDB) saveToTableUserOrders(ctx context.Context, trx *sql.Tx,
+	uid string,
+	userID string,
+	orderNumber int64,
+	status sharedkernel.Status,
+	sum sharedkernel.Money,
+	dateAndTime time.Time) error {
+
+	stmt, err := trx.PrepareContext(ctx, `
+	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
+	ON CONFLICT (orderNumber, userID) DO UPDATE SET status =$4, accrual = $5, accrual = $6;
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID,
+		status, sum, dateAndTime)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gdb *GophermartDB) saveToTableUserWithdrawals(ctx context.Context, trx *sql.Tx,
+	uid string,
+	userID string,
+	orderNumber int64,
+	sum sharedkernel.Money,
+	dateAndTime time.Time) error {
+
+	stmt, err := trx.PrepareContext(ctx, `
+	INSERT INTO user_withdrawals VALUES ($1, $2, $3, $4, $5);
+	ON CONFLICT (orderNumber, userID) DO NOTHING;
+	`) // if we are find withdrawal don't rewrite it
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID, sum, dateAndTime)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gdb *GophermartDB) saveToTableUserAccount(ctx context.Context, trx *sql.Tx,
+	uid string,
+	userID string,
+	balance sharedkernel.Money) error {
+	stmt, err := trx.PrepareContext(ctx, `
+	INSERT INTO user_account VALUES ($1, $2, $3);
+	ON CONFLICT (orderNumber, userID) DO UPDATE SET balance =$3;`)
+
+	if err != nil {
+		return err
+	}
+	_, err = stmt.ExecContext(ctx, uid, userID, balance)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -197,7 +291,7 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												status INT  NOT NULL,
 												accrual		numeric,
 												dateAndTime	timestamp,
-												PRIMARY KEY (uid)
+												PRIMARY KEY (orderNumber, userID)
 												);
 								CREATE TABLE IF NOT EXISTS public.user_withdrawals (
 								    			uid TEXT NOT NULL,
@@ -205,14 +299,13 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												userID TEXT,
 												amount		numeric,
 												dateAndTime	timestamp,
-												PRIMARY KEY (uid)
+												PRIMARY KEY (orderNumber, userID)
 												);
 	CREATE TABLE IF NOT EXISTS public.user_account (
 								    			uid TEXT NOT NULL,
 												userID TEXT,
-												balance		numeric,
-												withdrawal	numeric,
-												PRIMARY KEY (uid, userID)
+												balance		numeric
+												PRIMARY KEY (userID)
 												);
 												`)
 	if err != nil {
