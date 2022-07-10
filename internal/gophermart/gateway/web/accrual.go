@@ -51,12 +51,16 @@ func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int64) (*usecase.
 		return nil, err
 	}
 
+	log.Println("income bytes sub service", string(bytes))
+
 	dto := usecase.CalculationStateDTO{}
 
 	err = json.Unmarshal(bytes, &dto)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println("unmarshaled dto", dto)
 
 	return &dto, nil
 }
