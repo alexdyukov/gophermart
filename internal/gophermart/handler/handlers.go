@@ -189,7 +189,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 	}
 }
 
-// GetWithdrawals GET /api/user/balance/withdrawals — получение информации о выводе средств с накопительного счёта
+// GetWithdrawals GET /api/user/withdrawals — получение информации о выводе средств с накопительного счёта
 // 200 — успешная обработка запроса;
 // 204 — нет ни одного списания.
 // 401 — пользователь не авторизован.

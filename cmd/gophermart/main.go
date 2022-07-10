@@ -62,7 +62,7 @@ func main() { // nolint:funlen // ok
 		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(usecase.NewListUserOrders(gophermartStore)))
 		subRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowUserBalance(gophermartStore)))
 		subRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawUserFunds(gophermartStore)))
-		subRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(
+		subRouter.Get("/api/user/withdrawals", handler.GetWithdrawals(
 			usecase.NewListUserWithdrawals(gophermartStore)))
 	})
 
