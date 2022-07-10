@@ -167,7 +167,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		return err
 	}
 	if !exists {
-		log.Printf("создаем аккаунт для пользователя, так как его нет: ")
+		log.Printf("создаем аккаунт для пользователя %v, так как его нет", usrID)
 		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), order.User, 0)
 		if err != nil {
 			return err
@@ -236,6 +236,8 @@ func (gdb *GophermartDB) saveToTableUserOrders(
 	ON CONFLICT (orderNumber, userID) DO UPDATE SET status =$4, accrual = $5, dateAndTime = $6;
 	`)
 	if err != nil {
+		log.Printf("saveToTableUserOrders: Ошибка при попытке подготовить контекст user_orders - %v", err)
+
 		return err
 	}
 
@@ -243,6 +245,7 @@ func (gdb *GophermartDB) saveToTableUserOrders(
 		status, sum, dateAndTime)
 
 	if err != nil {
+		log.Printf("saveToTableUserOrders: Ошибка при записи в user_orders - %v", err)
 		return err
 	}
 
@@ -264,11 +267,14 @@ func (gdb *GophermartDB) saveToTableUserWithdrawals(
 	ON CONFLICT (orderNumber, userID) DO NOTHING;
 	`) // if we are find withdrawal don't rewrite it
 	if err != nil {
+		log.Printf("saveToTableUserWithdrawals: Ошибка при попытке подготовить контекст user_withdrawals- %v", err)
+
 		return err
 	}
 
 	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID, sum, dateAndTime)
 	if err != nil {
+		log.Printf("saveToTableUserAccount: Ошибка при попытке записать в user_account - %v", err)
 		return err
 	}
 
@@ -287,12 +293,14 @@ func (gdb *GophermartDB) saveToTableUserAccount(
 	INSERT INTO user_account VALUES ($1, $2, $3)
 	ON CONFLICT (userID) DO UPDATE SET balance =$3;`)
 	if err != nil {
+		log.Printf("saveToTableUserAccount: Ошибка при попытке подготовить контекст user_account- %v", err)
 		return err
 	}
 
 	_, err = stmt.ExecContext(ctx, uid, userID, balance)
 
 	if err != nil {
+		log.Printf("saveToTableUserAccount: Ошибка при попытке записать в user_account - %v", err)
 		return err
 	}
 
@@ -363,6 +371,8 @@ func accountExists(ctx context.Context, gdb *sql.DB, userID string) (bool, error
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
 		}
+
+		log.Printf("accountExists: Ошибка при попытке получить существующий ордер user_account- %v", err)
 
 		return false, err
 	}
