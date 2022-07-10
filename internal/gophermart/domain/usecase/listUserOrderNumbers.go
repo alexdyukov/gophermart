@@ -13,10 +13,15 @@ import (
 type (
 	ListUserOrdersRepository interface {
 		FindAllOrders(context.Context, string) ([]core.UserOrderNumber, error)
+		SaveUserOrder(context.Context, *core.UserOrderNumber) error
 	}
 
 	ListUserOrdersPrimaryPort interface {
 		Execute(context.Context, *sharedkernel.User) ([]ListUserOrdersOutputDTO, error)
+	}
+
+	ListCalculationStateGateway interface {
+		GetOrderCalculationState(int64) (*CalculationStateDTO, error)
 	}
 
 	ListUserOrdersOutputDTO struct {
@@ -28,18 +33,44 @@ type (
 	}
 
 	ListUserOrders struct {
-		Repo ListUserOrdersRepository
+		Repo           ListUserOrdersRepository
+		ServiceGateway ListCalculationStateGateway
 	}
 )
 
-func NewListUserOrders(repo ListUserOrdersRepository) *ListUserOrders {
+func NewListUserOrders(repo ListUserOrdersRepository, gw ListCalculationStateGateway) *ListUserOrders {
 	return &ListUserOrders{
-		Repo: repo,
+		Repo:           repo,
+		ServiceGateway: gw,
 	}
 }
 
-func (l *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
-	orders, err := l.Repo.FindAllOrders(ctx, user.ID())
+func (lou *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
+	// Update orders
+	ord, err := lou.Repo.FindAllOrders(ctx, user.ID())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, order := range ord {
+		inputDTO, err := lou.ServiceGateway.GetOrderCalculationState(order.Number) // nolint:govet // ok.
+		if err != nil {
+			continue
+		}
+
+		if inputDTO == nil {
+			continue
+		}
+
+		userOrder := core.NewOrderNumber(order.Number, inputDTO.Accrual, user.ID(), inputDTO.Status)
+
+		err = lou.Repo.SaveUserOrder(ctx, &userOrder)
+		if err != nil {
+			continue
+		}
+	}
+
+	orders, err := lou.Repo.FindAllOrders(ctx, user.ID())
 	if err != nil {
 		return nil, err
 	}
