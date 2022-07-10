@@ -2,13 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
-	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
