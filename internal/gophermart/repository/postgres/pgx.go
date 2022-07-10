@@ -162,6 +162,11 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		return err
 	}
 
+	err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), order.User, 0)
+	if err != nil {
+		return err
+	}
+
 	err = trx.Commit()
 
 	if err != nil {
