@@ -2,17 +2,19 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
-func (gdb *GophermartDB) SaveUserAccountTest(ctx context.Context, userId string, accrual float32, withdrawal float32) error {
+func (gdb *GophermartDB) SaveUserAccountTest(ctx context.Context, userId string, accrual sharedkernel.Money, withdrawal float32) error {
 
-	insertSQL := `INSERT INTO user_account VALUES ($1, $2, $3, $4)
-	ON CONFLICT (uid,userId) DO UPDATE SET accrual = $3 , withdrawal = $4 ;`
+	fmt.Println("пытаемся сохранить баланс по аккаунту пользователя: ", userId)
+
+	//insertSQL := `INSERT INTO user_account VALUES ($1, $2, $3, $4)
+	//ON CONFLICT (uid,userId) DO UPDATE SET accrual = $3 , withdrawal = $4 ;`
 	tx, err := gdb.Begin()
 
 	if err != nil {
@@ -20,15 +22,22 @@ func (gdb *GophermartDB) SaveUserAccountTest(ctx context.Context, userId string,
 	}
 	defer tx.Rollback()
 
-	stmt, err := tx.PrepareContext(ctx, insertSQL)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
+	err = gdb.saveToTableUserAccount(ctx, tx, sharedkernel.NewUUID(), userId, accrual)
 
-	if _, err = stmt.ExecContext(ctx, sharedkernel.NewUUID(), userId, accrual, withdrawal); err != nil {
+	if err != nil {
+		log.Printf("%v", err)
 		return err
 	}
+
+	//stmt, err := tx.PrepareContext(ctx, insertSQL)
+	//if err != nil {
+	//	return err
+	//}
+	//defer stmt.Close()
+	//
+	//if _, err = stmt.ExecContext(ctx, sharedkernel.NewUUID(), userId, accrual, withdrawal); err != nil {
+	//	return err
+	//}
 
 	if err = tx.Commit(); err != nil {
 		return err
@@ -38,7 +47,7 @@ func (gdb *GophermartDB) SaveUserAccountTest(ctx context.Context, userId string,
 
 }
 
-func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOrder int, sum float32, status sharedkernel.Status, date time.Time) error {
+func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOrder int64, sum sharedkernel.Money, status sharedkernel.Status, date time.Time) error {
 	exists, usrId, err := orderExists(ctx, gdb.DB, numOrder)
 	if err != nil || exists {
 		fmt.Println(usrId)
@@ -46,63 +55,56 @@ func (gdb *GophermartDB) SaveOrderTest(ctx context.Context, userId string, numOr
 	}
 
 	fmt.Println("пытаемся сохранить заказ : ", numOrder)
-	const insertSQL = `
-	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
-	`
 
-	_, err = gdb.ExecContext(ctx, insertSQL, sharedkernel.NewUUID(), numOrder, userId, status, sum, date)
-
-	return err
-}
-
-func (gdb *GophermartDB) SaveWithdrawalsTest(ctx context.Context, userId string, numOrder int, sum float32, date time.Time) error {
-	exists, err := withdrawalExists(ctx, gdb.DB, numOrder)
-	if err != nil || exists {
+	trx, err := gdb.Begin()
+	if err != nil {
 		return err
 	}
 
+	defer trx.Rollback() // nolint:errcheck // ok
+
+	err = gdb.saveToTableUserOrders(ctx, trx, sharedkernel.NewUUID(), userId, numOrder,
+		status, sum, date)
+
+	if err != nil {
+		log.Printf("%v", err)
+		return err
+	}
+
+	err = trx.Commit()
+
+	if err != nil {
+		log.Printf("%v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (gdb *GophermartDB) SaveWithdrawalsTest(ctx context.Context, userId string, numOrder int64, sum sharedkernel.Money, date time.Time) error {
+
 	fmt.Println("пытаемся сохранить отоваривание по заказу : ", numOrder)
-	const insertSQL = `
-	INSERT INTO user_withdrawals VALUES ($1, $2, $3, $4, $5);
-	`
 
-	_, err = gdb.ExecContext(ctx, insertSQL, sharedkernel.NewUUID(), numOrder, userId, sum, date)
-
-	return err
-}
-
-// userExists looks up a user by ID.
-func orderExists(ctx context.Context, db *sql.DB, orderNumber int) (bool, string, error) {
-	var id int
-	var userID string
-
-	const selectSQL = `
-SELECT orderNumber, userID FROM user_orders WHERE orderNumber = $1;
-`
-	err := db.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&id, &userID)
-	switch err {
-	case sql.ErrNoRows:
-		return false, userID, nil
-	case nil:
-		return true, userID, nil
-	default:
-		return false, userID, err
+	trx, err := gdb.Begin()
+	if err != nil {
+		return err
 	}
-}
 
-// userExists looks up a user by ID.
-func withdrawalExists(ctx context.Context, db *sql.DB, orderNumber int) (bool, error) {
-	var id int
-	const selectSQL = `
-SELECT orderNumber FROM user_withdrawals WHERE orderNumber = $1;
-`
-	err := db.QueryRowContext(ctx, selectSQL, orderNumber).Scan(&id)
-	switch err {
-	case sql.ErrNoRows:
-		return false, nil
-	case nil:
-		return true, nil
-	default:
-		return false, err
+	defer trx.Rollback() // nolint:errcheck // ok
+
+	err = gdb.saveToTableUserWithdrawals(ctx, trx, sharedkernel.NewUUID(), userId, numOrder,
+		sum, date)
+	if err != nil {
+		return err
 	}
+
+	err = trx.Commit()
+
+	if err != nil {
+		log.Printf("%v", err)
+		return err
+	}
+
+	return nil
+
 }

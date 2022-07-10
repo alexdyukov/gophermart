@@ -227,17 +227,25 @@ func (gdb *GophermartDB) saveToTableUserOrders(
 ) error {
 	//
 	stmt, err := trx.PrepareContext(ctx, `
-	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6);
-	ON CONFLICT (orderNumber, userID) DO UPDATE SET status =$4, accrual = $5, accrual = $6;
+	INSERT INTO user_orders VALUES ($1, $2, $3, $4, $5, $6)
+	ON CONFLICT (orderNumber, userID) DO UPDATE SET status =$4, accrual = $5, dateAndTime = $6;
 	`)
 	if err != nil {
+		log.Printf("не смогли подготовить данные в user_orders, ошибка : ", err)
 		return err
 	}
 
+	//uid TEXT NOT NULL,
+	//	orderNumber	bigint NOT NULL,
+	//	userID TEXT,
+	//	status INT  NOT NULL,
+	//	accrual		numeric,
+	//	dateAndTime	timestamp,
 	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID,
 		status, sum, dateAndTime)
 
 	if err != nil {
+		log.Printf("не смогли сохранить данные в user_orders, ошибка : ", err)
 		return err
 	}
 
@@ -255,16 +263,18 @@ func (gdb *GophermartDB) saveToTableUserWithdrawals(
 ) error {
 	//
 	stmt, err := trx.PrepareContext(ctx, `
-	INSERT INTO user_withdrawals VALUES ($1, $2, $3, $4, $5);
+	INSERT INTO user_withdrawals VALUES ($1, $2, $3, $4, $5)
 	ON CONFLICT (orderNumber, userID) DO NOTHING;
 	`) // if we are find withdrawal don't rewrite it
 	if err != nil {
+		log.Printf("не смогли подготовить данные в user_withdrawals, ошибка : ", err)
 		return err
 	}
 
 	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID, sum, dateAndTime)
 
 	if err != nil {
+		log.Printf("не смогли сохранить данные в user_withdrawals, ошибка : ", err)
 		return err
 	}
 
@@ -280,15 +290,17 @@ func (gdb *GophermartDB) saveToTableUserAccount(
 ) error {
 	//
 	stmt, err := trx.PrepareContext(ctx, `
-	INSERT INTO user_account VALUES ($1, $2, $3);
-	ON CONFLICT (orderNumber, userID) DO UPDATE SET balance =$3;`)
+	INSERT INTO user_account VALUES ($1, $2, $3)
+	ON CONFLICT (userID) DO UPDATE SET balance =$3;`)
 	if err != nil {
+		log.Printf("не смогли подготовить данные в user_account, ошибка : ", err)
 		return err
 	}
 
 	_, err = stmt.ExecContext(ctx, uid, userID, balance)
 
 	if err != nil {
+		log.Printf("не смогли сохранить данные в user_account, ошибка : ", err)
 		return err
 	}
 
@@ -296,6 +308,7 @@ func (gdb *GophermartDB) saveToTableUserAccount(
 }
 
 func (gdb *GophermartDB) createTablesIfNotExist() error {
+
 	_, err := gdb.Exec(`CREATE TABLE IF NOT EXISTS public.user_orders (
     											uid TEXT NOT NULL,
      											orderNumber	bigint NOT NULL, 
@@ -303,7 +316,7 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												status INT  NOT NULL,
 												accrual		numeric,
 												dateAndTime	timestamp,
-												PRIMARY KEY (orderNumber, userID)
+												PRIMARY KEY (userID,orderNumber)
 												);
 								CREATE TABLE IF NOT EXISTS public.user_withdrawals (
 								    			uid TEXT NOT NULL,
@@ -311,16 +324,18 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												userID TEXT,
 												amount		numeric,
 												dateAndTime	timestamp,
-												PRIMARY KEY (orderNumber, userID)
+												PRIMARY KEY (userID,orderNumber)
 												);
 	CREATE TABLE IF NOT EXISTS public.user_account (
 								    			uid TEXT NOT NULL,
-												userID TEXT,
-												balance		numeric
+												userID TEXT NOT NULL,
+												balance		numeric,
 												PRIMARY KEY (userID)
 												);
 												`)
+
 	if err != nil {
+		log.Printf("не смогли создать таблицы, ошибка : ", err)
 		return err // nolint:wrapcheck // ok
 	}
 
