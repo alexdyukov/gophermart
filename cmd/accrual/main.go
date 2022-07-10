@@ -26,20 +26,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	accrualDB := postgres.NewAccrualDB(conn)
+	accrualDB, err := postgres.NewAccrualDB(conn)
+	if err != nil {
+		log.Fatalf("start db failed: %v", err)
+	}
 
 	// Router
 	accrualRouter := chi.NewRouter()
 
 	// Chi middlewares
 	accrualRouter.Use(middleware.Recoverer)
-	// other middlewares
 
 	// Handlers
 	accrualRouter.Get("/api/orders/{number}", handler.OrderCalculationGetHandler(
 		usecase.NewShowOrderCalculation(accrualDB)))
 
-	accrualRouter.Post("/api/orders", handler.RegisterOrderPostHandler(usecase.NewRegisterOrderReceipt(accrualDB)))
+	calculateRewardUsecase := usecase.NewCalculateReward(accrualDB)
+
+	accrualRouter.Post("/api/orders", handler.RegisterOrderPostHandler(
+		usecase.NewRegisterOrderReceipt(accrualDB),
+		calculateRewardUsecase,
+	))
 
 	accrualRouter.Post("/api/goods", handler.RegisterMechanicPostHandler(usecase.NewRegisterRewardMechanic(accrualDB)))
 

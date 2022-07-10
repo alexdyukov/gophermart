@@ -20,35 +20,42 @@ type AccrualGateway struct {
 }
 
 func NewAccrualGateway(addr, path string) *AccrualGateway {
-	return &AccrualGateway{ // nolint:exhaustivestruct // ok
+	return &AccrualGateway{
 		addr:  addr,
 		path:  path,
 		proto: "http://",
 	}
 }
 
-func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int) (*usecase.CalculationStateDTO, error) {
-	numStr := strconv.Itoa(orderNumber)
+func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int64) (*usecase.CalculationStateDTO, error) {
+	numStr := strconv.FormatInt(orderNumber, 10)
 
 	log.Println(ag.addr + ag.path + numStr)
 
-	response, err := ag.client.Get(ag.proto + ag.addr + ag.path + numStr)
+	response, err := ag.client.Get(ag.addr + ag.path + numStr)
 	if err != nil {
 		log.Println(err)
 
-		return nil, err // nolint:wrapcheck // ok
+		return nil, err
 	}
+
+	defer func() {
+		err = response.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, err // nolint:wrapcheck // ok
+		return nil, err
 	}
 
-	dto := usecase.CalculationStateDTO{} // nolint:exhaustivestruct // ok
+	dto := usecase.CalculationStateDTO{}
 
 	err = json.Unmarshal(bytes, &dto)
 	if err != nil {
-		return nil, err // nolint:wrapcheck // ok
+		return nil, err
 	}
 
 	return &dto, nil

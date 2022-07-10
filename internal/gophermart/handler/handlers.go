@@ -2,13 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
+	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
@@ -40,34 +40,9 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 			return
 		}
 
-		orderNumber, err := strconv.Atoi(string(bytes))
+		err = registerUserOrderUsecase.Execute(request.Context(), string(bytes), user)
 		if err != nil {
-			log.Printf("error while reading request.")
-			writer.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		err = registerUserOrderUsecase.Execute(request.Context(), orderNumber, user)
-		if err != nil {
-			log.Println(err)
-			if err == sharedkernel.ErrOrderExists {
-				writer.WriteHeader(http.StatusOK) // 200
-
-				return
-			}
-			if err == sharedkernel.ErrAnotherUserOrder {
-				writer.WriteHeader(http.StatusConflict) // 409
-
-				return
-			}
-
-			if err == sharedkernel.ErrIncorrectOrderNumber {
-				writer.WriteHeader(http.StatusUnprocessableEntity) // 422
-
-				return
-			}
-			writer.WriteHeader(http.StatusInternalServerError) // 500
+			checkAndSendErr(writer, err)
 
 			return
 		}
@@ -143,7 +118,7 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		balance, err := showBalanceUsecase.Execute(request.Context(), user)
+		userBalance, err := showBalanceUsecase.Execute(request.Context(), user)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -151,10 +126,10 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		strJSON, err := json.Marshal(balance)
+		response, err := json.Marshal(userBalance)
 		if err != nil {
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError) // 500 — внутренняя ошибка сервера
+			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
@@ -162,12 +137,9 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
 
-		_, err = writer.Write(strJSON)
-
+		_, err = writer.Write(response)
 		if err != nil {
 			log.Println(err)
-
-			return
 		}
 	}
 }
@@ -205,13 +177,25 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 
 		err = withdrawFundsUsecase.Execute(request.Context(), user, dto)
 		if err != nil {
+			if errors.Is(err, sharedkernel.ErrIncorrectOrderNumber) {
+				writer.WriteHeader(http.StatusUnprocessableEntity) // 422
+
+				return
+			}
+
+			if errors.Is(err, sharedkernel.ErrInsufficientFunds) {
+				writer.WriteHeader(http.StatusPaymentRequired) // 402
+
+				return
+			}
+
 			log.Println(err)
-			writer.WriteHeader(http.StatusInternalServerError)
+			writer.WriteHeader(http.StatusInternalServerError) // 500
 
 			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		writer.WriteHeader(http.StatusOK) // 200
 	}
 }
 
@@ -242,29 +226,46 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 
 		switch len(wdrls) {
 		case 0: // отправляем ответ что нет ни одного списания
-			fmt.Println("GetWithdrawals: не нашли ни одного списания", err)
-			writer.WriteHeader(204)
+			writer.WriteHeader(http.StatusNoContent) // 204
+
+			return
 
 		default:
-			{
-				writer.WriteHeader(200)
-				writer.Header().Set("Content-Type", "application/json")
+			strJSON, err := json.Marshal(wdrls)
+			if err != nil {
+				writer.WriteHeader(http.StatusInternalServerError) // 500
 
-				strJSON, err := json.Marshal(wdrls)
-				if err != nil {
-					fmt.Println("GetWithdrawals: ушли в ошибку #2 ", err)
-					writer.WriteHeader(500)
-					return
-				}
+				return
+			}
 
-				if _, err = writer.Write(strJSON); err != nil {
-					fmt.Println("GetWithdrawals: ушли в ошибку #3", err)
-					writer.WriteHeader(500)
+			writer.Header().Set("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusOK) // 200
 
-					return
-				}
-				fmt.Println("GetWithdrawals: все зашибись, отправили статус 200 и JSON ", string(strJSON))
+			if _, err = writer.Write(strJSON); err != nil {
+				writer.WriteHeader(http.StatusInternalServerError) // 500
 			}
 		}
 	}
+}
+
+func checkAndSendErr(writer http.ResponseWriter, err error) {
+	if errors.Is(err, sharedkernel.ErrOrderExists) {
+		writer.WriteHeader(http.StatusOK) // 200
+
+		return
+	}
+
+	if errors.Is(err, sharedkernel.ErrAnotherUserOrder) {
+		writer.WriteHeader(http.StatusConflict) // 409
+
+		return
+	}
+
+	if errors.Is(err, sharedkernel.ErrIncorrectOrderNumber) {
+		writer.WriteHeader(http.StatusUnprocessableEntity) // 422
+
+		return
+	}
+
+	writer.WriteHeader(http.StatusInternalServerError) // 500
 }

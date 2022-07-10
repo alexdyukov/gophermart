@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"strconv"
 
+	"github.com/alexdyukov/gophermart/internal/accrual/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
@@ -12,24 +14,24 @@ type (
 
 	// RegisterUserOrderRepository is a secondary port.
 	RegisterUserOrderRepository interface {
-		SaveUserOrder(context.Context, core.UserOrderNumber) error
+		SaveUserOrder(context.Context, *core.UserOrderNumber) error
 	}
 
 	// CalculationStateGateway is a secondary port.
 	CalculationStateGateway interface {
-		GetOrderCalculationState(int) (*CalculationStateDTO, error)
+		GetOrderCalculationState(int64) (*CalculationStateDTO, error)
 	}
 
 	// CalculationStateDTO is secondary DTO.
 	CalculationStateDTO struct {
+		Order   string              `json:"order"`
 		Status  sharedkernel.Status `json:"status"`
-		Order   int                 `json:"order"`
-		Accrual int                 `json:"accrual"`
+		Accrual sharedkernel.Money  `json:"accrual"`
 	}
 
 	// RegisterUserOrderPrimaryPort is a primary port.
 	RegisterUserOrderPrimaryPort interface {
-		Execute(context.Context, int, *sharedkernel.User) error
+		Execute(context.Context, string, *sharedkernel.User) error
 	}
 
 	// RegisterUserOrder is a usecase.
@@ -46,20 +48,32 @@ func NewLoadOrderNumber(repo RegisterUserOrderRepository, gw CalculationStateGat
 	}
 }
 
-func (ruo *RegisterUserOrder) Execute(ctx context.Context, number int, user *sharedkernel.User) error {
-
-	if !sharedkernel.ValidLuhn(strconv.Itoa(number)) {
+func (ruo *RegisterUserOrder) Execute(ctx context.Context, number string, user *sharedkernel.User) error {
+	if !sharedkernel.ValidLuhn(number) {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
 
-	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(number)
+	orderNumber, err := strconv.ParseInt(number, 10, 64) // nolint:gomnd // ok
 	if err != nil {
-		return err // nolint:wrapcheck // ok
+		return usecase.ErrIncorrectOrderNumber
 	}
 
-	userOrder := core.NewOrderNumber(number, sharedkernel.Money(inputDTO.Accrual), user.ID(), inputDTO.Status)
+	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(orderNumber)
+	if err != nil {
+		log.Printf("%v", err)
+	}
 
-	err = ruo.Repository.SaveUserOrder(ctx, userOrder)
+	if inputDTO == nil {
+		inputDTO = &CalculationStateDTO{
+			Accrual: 0,
+			Order:   number,
+			Status:  sharedkernel.NEW,
+		}
+	}
+
+	userOrder := core.NewOrderNumber(orderNumber, inputDTO.Accrual, user.ID(), inputDTO.Status)
+
+	err = ruo.Repository.SaveUserOrder(ctx, &userOrder)
 	if err != nil {
 		return err // nolint:wrapcheck // ok
 	}

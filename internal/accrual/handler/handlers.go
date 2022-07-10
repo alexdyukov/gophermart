@@ -2,10 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/usecase"
 	"github.com/go-chi/chi"
@@ -16,18 +16,16 @@ import (
 // 500 — внутренняя ошибка сервера.
 func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCalculationPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		n := chi.URLParam(request, "number")
-
-		number, err := strconv.Atoi(n)
-		if err != nil {
-			writer.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
+		number := chi.URLParam(request, "number")
 
 		output, err := showOrderCalculationUsecase.Execute(request.Context(), number)
 		if err != nil {
-			log.Println(err)
+			if errors.Is(err, usecase.ErrIncorrectOrderNumber) {
+				writer.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
+
 			writer.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -35,9 +33,12 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 
 		result, err := json.Marshal(output)
 		if err != nil {
-			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
+
+			return
 		}
 
+		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
 
 		_, err = writer.Write(result)
@@ -52,7 +53,10 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 // 400 — неверный формат запроса;
 // 409 — заказ уже принят в обработку;
 // 500 — внутренняя ошибка сервера.
-func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrderReceiptPrimaryPort) http.HandlerFunc {
+func RegisterOrderPostHandler(
+	registerPurchasedOrderUsecase usecase.RegisterOrderReceiptPrimaryPort,
+	calculateRewardUsecase usecase.CalculateRewardPrimaryPort,
+) http.HandlerFunc { // nolint:whitespace // ok
 	return func(writer http.ResponseWriter, request *http.Request) {
 		bytes, err := io.ReadAll(request.Body)
 		if err != nil {
@@ -65,18 +69,38 @@ func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrde
 
 		err = json.Unmarshal(bytes, &orderReceiptDTO)
 		if err != nil {
+			log.Println("cant unmarshal", err)
 			writer.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
-		err = registerPurchasedOrderUsecase.Execute(request.Context(), orderReceiptDTO)
+		orderReceipt, err := registerPurchasedOrderUsecase.Execute(request.Context(), &orderReceiptDTO)
 		if err != nil {
-			log.Println(err)
+			if errors.Is(err, usecase.ErrIncorrectOrderNumber) {
+				log.Println("incorrect order number", err)
+				writer.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
+
+			if errors.Is(err, usecase.ErrOrderAlreadyExist) {
+				writer.WriteHeader(http.StatusConflict)
+
+				return
+			}
+
 			writer.WriteHeader(http.StatusInternalServerError)
+
+			return
 		}
 
-		writer.WriteHeader(http.StatusOK)
+		err = calculateRewardUsecase.Execute(request.Context(), orderReceipt)
+		if err != nil {
+			log.Println(err)
+		}
+
+		writer.WriteHeader(http.StatusAccepted)
 	}
 }
 
@@ -87,11 +111,31 @@ func RegisterOrderPostHandler(registerPurchasedOrderUsecase usecase.RegisterOrde
 // 500 — внутренняя ошибка сервера.
 func RegisterMechanicPostHandler(registerRewardUsecase usecase.RegisterRewardMechanicPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		input := usecase.RegisterRewardMechanicInputDTO{}
-
-		err := registerRewardUsecase.Execute(request.Context(), &input)
+		bytes, err := io.ReadAll(request.Body)
 		if err != nil {
-			log.Println(err)
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		registerRewardInputDTO := usecase.RegisterRewardMechanicInputDTO{}
+
+		err = json.Unmarshal(bytes, &registerRewardInputDTO)
+		if err != nil {
+			writer.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		err = registerRewardUsecase.Execute(request.Context(), &registerRewardInputDTO)
+		if err != nil {
+			if errors.Is(err, usecase.ErrRewardAlreadyExists) {
+				writer.WriteHeader(http.StatusConflict)
+
+				return
+			}
+
+			writer.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
