@@ -11,7 +11,7 @@ import (
 type (
 	WithdrawUserFundsRepository interface {
 		FindAccountByID(context.Context, string) (core.Account, error)
-		SaveAccount(context.Context, core.Account) error
+		SaveAccount(context.Context, *core.Account) error
 	}
 
 	WithdrawFundsInputPort interface {
@@ -39,9 +39,11 @@ func (wuf *WithdrawUserFunds) Execute(
 	ctx context.Context,
 	user *sharedkernel.User,
 	dto WithdrawUserFundsInputDTO,
-) error { // nolint:whitespace // ok
+) error {
+	//
+	const base = 10
 
-	if !sharedkernel.ValidLuhn(strconv.FormatInt(dto.Order, 64)) {
+	if !sharedkernel.ValidLuhn(strconv.FormatInt(dto.Order, base)) {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
 
@@ -56,7 +58,7 @@ func (wuf *WithdrawUserFunds) Execute(
 		return sharedkernel.ErrInsufficientFunds
 	}
 
-	err = wuf.Repo.SaveAccount(ctx, account)
+	err = wuf.Repo.SaveAccount(ctx, &account)
 	if err != nil {
 		return err
 	}
