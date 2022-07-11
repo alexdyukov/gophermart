@@ -172,7 +172,9 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	return *acc, nil
 }
 
+// nolint:funlen // ok
 func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) error {
+	//
 	var (
 		userID  string
 		balance sharedkernel.Money
@@ -221,11 +223,7 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 
 	err = trx.Commit() // шаг 4 — сохраняем изменения
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrderNumber) error {
@@ -257,11 +255,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 
 	err = trx.Commit()
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (gdb *GophermartDB) SaveOrderWithoutCheck(ctx context.Context, order *core.UserOrderNumber) error {
@@ -279,11 +273,8 @@ func (gdb *GophermartDB) SaveOrderWithoutCheck(ctx context.Context, order *core.
 	}
 
 	err = trx.Commit()
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (gdb *GophermartDB) SaveAccount(ctx context.Context, acc *core.Account) error {
@@ -316,11 +307,7 @@ func (gdb *GophermartDB) SaveAccount(ctx context.Context, acc *core.Account) err
 
 	err = trx.Commit() // шаг 4 — сохраняем изменения
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (gdb *GophermartDB) saveToTableUserOrders(
