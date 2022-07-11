@@ -50,6 +50,7 @@ func main() { // nolint:funlen // ok
 
 	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
 
+	log.Println("запускаем го рутину")
 	go PallStart(upd)
 
 	appRouter := chi.NewRouter()
@@ -84,7 +85,7 @@ func main() { // nolint:funlen // ok
 
 func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 	const (
-		DefaultPollInterval = 2 * time.Second
+		DefaultPollInterval = 1 * time.Second
 	)
 	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	//defer cancel()
