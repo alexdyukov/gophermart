@@ -1,8 +1,6 @@
 package core
 
 import (
-	"log"
-
 	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
@@ -49,7 +47,7 @@ func (ord *OrderReceipt) CalculateRewardPoints(rewards map[string]Reward) {
 		points += rew.RewardPoints()
 	}
 
-	log.Println("calcalated->", points)
+	//log.Println("calcalated->", points)
 
 	ord.Accrual = points
 	ord.Status = sharedkernel.PROCESSED
