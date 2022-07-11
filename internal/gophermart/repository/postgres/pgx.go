@@ -104,7 +104,7 @@ func (gdb *GophermartDB) FindAllUnprocessedOrders(ctx context.Context) ([]core.U
 		return nil, err
 	}
 
-	log.Println("FindAllUnprocessedOrders", result)
+	log.Println("FindAllUnprocessedOrders result= ", result)
 
 	return result, nil
 }
