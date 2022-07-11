@@ -65,6 +65,7 @@ func main() { // nolint:funlen // ok
 	}
 	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
 
+	log.Println("запускаем го-рутину")
 	go PallStart(upd)
 
 	appRouter := chi.NewRouter()
@@ -96,6 +97,9 @@ func main() { // nolint:funlen // ok
 
 	err = server.ListenAndServe()
 	log.Print(err)
+	for true {
+
+	}
 }
 
 func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
@@ -107,6 +111,8 @@ func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 		timer := time.NewTimer(DefaultPollInterval)
 		select {
 		case <-timer.C:
+			log.Println("Выполняем showBalanceUsecase.Execute() в го-рутине")
+
 			showBalanceUsecase.Execute()
 
 		}
