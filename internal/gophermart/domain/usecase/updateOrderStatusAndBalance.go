@@ -47,11 +47,12 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 
 	for _, order := range allOrders {
 		inputDTO, err := uob.ServiceGateway.GetOrderCalculationState(order.Number) // nolint:govet // ok.
+		log.Println("inputDTO = ", inputDTO)
 		if err != nil {
-			log.Printf("UpdateOrderAndBalance #1: ошибка получения GetOrderCalculationState")
+			log.Println("UpdateOrderAndBalance #1: ошибка получения GetOrderCalculationState")
 			continue
 		}
-		log.Printf("inputDTO = ", inputDTO)
+
 		if inputDTO == nil {
 			continue
 		}
@@ -63,17 +64,17 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 		sliceUsers = append(sliceUsers, order.User)
 		err = uob.Repo.SaveUserOrder(ctx, &userOrder)
 		if err != nil {
-			log.Printf("UpdateOrderAndBalance #1: ошибка сохранения заказа в бд")
+			log.Println("UpdateOrderAndBalance #1: ошибка сохранения заказа в бд")
 			continue
 		}
-		log.Printf("UpdateOrderAndBalance #1: сохранили заказ идем дальше")
+		log.Println("UpdateOrderAndBalance #1: сохранили заказ идем дальше")
 		//}
 	}
 
 	sliceUsers = removeDuplicateElement(sliceUsers)
 
 	if len(sliceUsers) > 0 {
-		log.Printf("UpdateOrderAndBalance #1: пробуем обновить баланс у пользователей")
+		log.Println("UpdateOrderAndBalance #1: пробуем обновить баланс у пользователей")
 		err = uob.Repo.UpdateUserBalance(ctx, sliceUsers)
 	}
 	return nil
