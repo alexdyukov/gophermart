@@ -63,10 +63,10 @@ func main() { // nolint:funlen // ok
 		fmt.Println("ошибка при записи заказа ", err)
 		return
 	}
-	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
+	//upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
 
-	log.Println("запускаем го-рутину")
-	go PallStart(upd)
+	//log.Println("запускаем го-рутину")
+	//go PallStart(upd)
 
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
@@ -97,9 +97,7 @@ func main() { // nolint:funlen // ok
 
 	err = server.ListenAndServe()
 	log.Print(err)
-	for true {
 
-	}
 }
 
 func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {

@@ -15,6 +15,7 @@ type (
 	// RegisterUserOrderRepository is a secondary port.
 	RegisterUserOrderRepository interface {
 		SaveUserOrder(context.Context, *core.UserOrderNumber) error
+		UpdateUserBalance(context.Context, []string) error
 	}
 
 	// CalculationStateGateway is a secondary port.
@@ -58,19 +59,17 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number string, user *
 		return usecase.ErrIncorrectOrderNumber
 	}
 
-	//inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(orderNumber)
-	//if err != nil {
-	//	log.Printf("%v", err)
-	//}
+	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(orderNumber)
+	if err != nil {
+		log.Printf("%v", err)
+	}
 
-	//if inputDTO == nil {
-
-	//}
-
-	inputDTO := &CalculationStateDTO{
-		Accrual: 0,
-		Order:   number,
-		Status:  sharedkernel.NEW,
+	if inputDTO == nil {
+		inputDTO = &CalculationStateDTO{
+			Accrual: 0,
+			Order:   number,
+			Status:  sharedkernel.NEW,
+		}
 	}
 
 	userOrder := core.NewOrderNumber(orderNumber, inputDTO.Accrual, user.ID(), inputDTO.Status)
@@ -79,6 +78,12 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number string, user *
 	if err != nil {
 		return err // nolint:wrapcheck // ok
 	}
+
+	sliceUsers := make([]string, 0)
+	sliceUsers = append(sliceUsers, user.ID())
+
+	log.Println("UpdateOrderAndBalance #1: пробуем обновить баланс у пользователей")
+	err = ruo.Repository.UpdateUserBalance(ctx, sliceUsers)
 
 	return nil
 }
