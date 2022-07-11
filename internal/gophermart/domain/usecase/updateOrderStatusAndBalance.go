@@ -9,7 +9,7 @@ import (
 type (
 	UpdateUserOrderBalanceRepository interface {
 		FindAllUnprocessedOrders(context.Context) ([]core.UserOrderNumber, error)
-		SaveUserOrder(context.Context, *core.UserOrderNumber) error
+		SaveOrderWithoutCheck(context.Context, *core.UserOrderNumber) error
 		UpdateUserBalance(context.Context, []string) error
 	}
 
@@ -38,7 +38,7 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 
 	allOrders, err := uob.Repo.FindAllUnprocessedOrders(ctx)
 	if err != nil {
-		log.Println("UpdateOrderAndBalance #1: ошибка получения всех заказов")
+		log.Println("UpdateOrderAndBalance #1:FindAllUnprocessedOrders - ошибка получения всех заказов")
 		return err // nolint:wrapcheck // ok
 	}
 
@@ -59,16 +59,18 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 
 		userOrder := core.NewOrderNumber(order.Number, inputDTO.Accrual, order.User, inputDTO.Status)
 
-		//if inputDTO.Status != order.Status {
-		log.Println("")
-		sliceUsers = append(sliceUsers, order.User)
-		err = uob.Repo.SaveUserOrder(ctx, &userOrder)
-		if err != nil {
-			log.Println("UpdateOrderAndBalance #1: ошибка сохранения заказа в бд")
-			continue
+		if inputDTO.Status != order.Status {
+			log.Println("")
+			sliceUsers = append(sliceUsers, order.User)
+			err = uob.Repo.SaveOrderWithoutCheck(ctx, &userOrder)
+			if err != nil {
+				log.Println("UpdateOrderAndBalance #1: ошибка сохранения заказа в бд")
+				continue
+			}
+			log.Println("UpdateOrderAndBalance #1: сохранили заказ идем дальше")
+		} else {
+			log.Printf("НЕ требуется пересохранять заказ в бд,не поменялось ничего: ordNum = %v, ordSt = %v, ordAccur = %v", order.Number, order.Status, order.Accrual)
 		}
-		log.Println("UpdateOrderAndBalance #1: сохранили заказ идем дальше")
-		//}
 	}
 
 	sliceUsers = removeDuplicateElement(sliceUsers)

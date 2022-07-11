@@ -87,17 +87,17 @@ func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 	const (
 		DefaultPollInterval = 1 * time.Second
 	)
-	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	//defer cancel()
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
 	for {
 		timer := time.NewTimer(DefaultPollInterval)
 		select {
 		case <-timer.C:
-			log.Println("пробуем получить баланс")
 			showBalanceUsecase.Execute(ctx)
 
 		case <-ctx.Done():
+			log.Printf("PallStart stops at %v \n", time.Now())
 			return
 		}
 	}
