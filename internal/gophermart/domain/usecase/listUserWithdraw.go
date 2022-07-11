@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
@@ -48,7 +49,7 @@ func (list *ListUserWithdrawals) Execute(ctx context.Context, user *sharedkernel
 	for _, withdraw := range *sliceAccountWithdrawals {
 		slwoDTO = append(slwoDTO,
 			ListUserWithdrawalsOutputDTO{
-				Order:       string(withdraw.OrderNumber),
+				Order:       strconv.FormatInt(withdraw.OrderNumber, 10),
 				Sum:         withdraw.Amount,
 				ProcessedAt: withdraw.OperationTime.Format(time.RFC3339),
 			})
