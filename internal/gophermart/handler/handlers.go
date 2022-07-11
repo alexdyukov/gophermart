@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
@@ -22,7 +23,7 @@ import (
 // 500 — внутренняя ошибка сервера.
 func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserOrderPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		log.Println("Запущен хендлер // RegisterUserOrderPostHandler POST /api/user/orders")
+		//log.Printf("Запущен хендлер // RegisterUserOrderPostHandler (Добавление нового ЗАКАЗА) %v : %v",time.Now(), request.Body)
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -57,7 +58,7 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 // 500 — внутренняя ошибка сервера.
 func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		log.Println("Запущен хендлер // ListUserOrdersGetHandler GET /api/user/orders")
+		//log.Printf("Запущен хендлер // ListUserOrdersGetHandler (Чтение списка заказов) %v",time.Now())
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -106,7 +107,7 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 // 500 — внутренняя ошибка сервера.
 func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		log.Println("Запущен хендлер // GetBalance GET /api/user/balance")
+		log.Printf("Запущен хендлер // GetBalance (Показать баланс)) %v \n", time.Now())
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
