@@ -190,6 +190,7 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 		return err
 	}
 
+	log.Println("UpdateUserBalance: получили баланс по пользователю пробуем сохранить")
 	defer func() {
 		err = stmt.Close()
 		if err != nil {
@@ -212,7 +213,7 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 		if err := rows.Scan(&balance, &userID); err != nil {
 			return err
 		}
-
+		log.Println("UpdateUserBalance: такие данные ", balance)
 		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), userID, balance)
 		if err != nil {
 			return err
