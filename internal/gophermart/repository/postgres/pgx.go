@@ -67,6 +67,43 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 	return result, nil
 }
 
+func (gdb *GophermartDB) FindAllUnprocessedOrders(ctx context.Context) ([]core.UserOrderNumber, error) {
+	result := make([]core.UserOrderNumber, 0)
+
+	query := `SELECT uid, orderNumber, userID, status, accrual, dateAndTime
+	FROM public.user_orders WHERE status != $1
+ 	ORDER BY dateAndTime
+	`
+	rows, err := gdb.QueryContext(ctx, query, sharedkernel.PROCESSED)
+	// only one cuddle assignment allowed before if statement for linter
+	if err != nil {
+		return result, err
+	}
+	defer rows.Close()
+
+	ord := core.UserOrderNumber{}
+
+	for rows.Next() {
+		err = rows.Scan(&ord.ID, &ord.Number, &ord.User, &ord.Status, &ord.Accrual, &ord.DateAndTime) //#
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, sql.ErrNoRows
+			}
+
+			return nil, err
+		}
+
+		result = append(result, ord)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 // nolint:funlen // ok
 func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (core.Account, error) {
 	var ( // для сохранения чтобы потом передать в функции
@@ -84,7 +121,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	defer func() {
 		err = stmt.Close()
 		if err != nil {
-			log.Println(err)
+			log.Println("FindAccountByID :", err)
 		}
 	}()
 
@@ -96,7 +133,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	defer func() {
 		err = stmt.Close()
 		if err != nil {
-			log.Println(err)
+			log.Println("FindAccountByID :", err)
 		}
 	}()
 
@@ -135,7 +172,60 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	return *acc, nil
 }
 
-// nolint:cyclop // ok
+// nolint:funlen // ok
+func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) error {
+	//
+	var (
+		userID  string
+		balance sharedkernel.Money
+	)
+
+	stmt, err := gdb.PrepareContext(ctx, `SELECT accrual, userID FROM user_orders WHERE userID = ANY ($1) and status = $2`)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	rows, err := stmt.QueryContext(ctx, usrs, sharedkernel.PROCESSED)
+	if err != nil {
+		return err //nolint:wrapcheck  // ok
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return err
+	}
+
+	trx, err := gdb.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer trx.Rollback() // nolint:errcheck // ok
+
+	for rows.Next() {
+		err = rows.Scan(&balance, &userID)
+		if err != nil {
+			return err
+		}
+
+		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), userID, balance)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = trx.Commit() // шаг 4 — сохраняем изменения
+
+	return err
+}
+
 func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrderNumber) error {
 	exists, usrID, err := orderExists(ctx, gdb.DB, order.Number)
 	if err != nil || exists {
@@ -163,25 +253,28 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		return err
 	}
 
-	exists, err = accountExists(ctx, gdb.DB, usrID)
+	err = trx.Commit()
+
+	return err
+}
+
+func (gdb *GophermartDB) SaveOrderWithoutCheck(ctx context.Context, order *core.UserOrderNumber) error {
+	trx, err := gdb.Begin()
 	if err != nil {
 		return err
 	}
 
-	if !exists {
-		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), order.User, 0)
-		if err != nil {
-			return err
-		}
+	defer trx.Rollback() // nolint:errcheck // ok
+
+	err = gdb.saveToTableUserOrders(ctx, trx, order.ID, order.User, order.Number,
+		order.Status, order.Accrual, order.DateAndTime)
+	if err != nil {
+		return err
 	}
 
 	err = trx.Commit()
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (gdb *GophermartDB) SaveAccount(ctx context.Context, acc *core.Account) error {
@@ -214,11 +307,7 @@ func (gdb *GophermartDB) SaveAccount(ctx context.Context, acc *core.Account) err
 
 	err = trx.Commit() // шаг 4 — сохраняем изменения
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (gdb *GophermartDB) saveToTableUserOrders(
@@ -352,21 +441,4 @@ SELECT orderNumber, userID FROM public.user_orders WHERE orderNumber = $1;`
 	}
 
 	return true, userID, nil
-}
-
-func accountExists(ctx context.Context, gdb *sql.DB, userID string) (bool, error) {
-	//
-	const selectSQL = `
-	SELECT userID FROM public.user_account WHERE userID = $1;`
-
-	err := gdb.QueryRowContext(ctx, selectSQL, userID).Scan(&userID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil
-		}
-
-		return false, err
-	}
-
-	return true, nil
 }

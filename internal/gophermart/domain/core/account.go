@@ -93,7 +93,7 @@ func (acc *Account) WithdrawPoints(order int64, amount sharedkernel.Money) error
 		OperationTime: time.Now(),
 	}
 
-	acc.balance = -amount
+	acc.balance -= amount
 	acc.withdrawHistory = append(acc.withdrawHistory, with)
 
 	return nil

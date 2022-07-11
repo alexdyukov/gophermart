@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
@@ -19,7 +20,7 @@ type (
 
 	ListUserWithdrawalsOutputDTO struct {
 		ProcessedAt string             `json:"processed_at"` // nolint:tagliatelle // external requirements
-		Order       int64              `json:"order"`
+		Order       string             `json:"order"`
 		Sum         sharedkernel.Money `json:"sum"`
 	}
 
@@ -48,7 +49,7 @@ func (list *ListUserWithdrawals) Execute(ctx context.Context, user *sharedkernel
 	for _, withdraw := range *sliceAccountWithdrawals {
 		slwoDTO = append(slwoDTO,
 			ListUserWithdrawalsOutputDTO{
-				Order:       withdraw.OrderNumber,
+				Order:       strconv.FormatInt(withdraw.OrderNumber, 10),
 				Sum:         withdraw.Amount,
 				ProcessedAt: withdraw.OperationTime.Format(time.RFC3339),
 			})

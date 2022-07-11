@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	authUsecase "github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/auth/gateway/token"
@@ -46,6 +48,9 @@ func main() { // nolint:funlen // ok
 		log.Fatal(err)
 	}
 
+	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
+	go PallStart(upd)
+
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
 
@@ -59,8 +64,7 @@ func main() { // nolint:funlen // ok
 		subRouter.Use(appMiddleware.Authentication(jwtGateway))
 		subRouter.Post("/api/user/orders", handler.RegisterUserOrderPostHandler(
 			usecase.NewLoadOrderNumber(gophermartStore, accrualGateway)))
-		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(
-			usecase.NewListUserOrders(gophermartStore, accrualGateway)))
+		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(usecase.NewListUserOrders(gophermartStore)))
 		subRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowUserBalance(gophermartStore)))
 		subRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawUserFunds(gophermartStore)))
 		subRouter.Get("/api/user/withdrawals", handler.GetWithdrawals(
@@ -74,4 +78,26 @@ func main() { // nolint:funlen // ok
 
 	err = server.ListenAndServe()
 	log.Print(err)
+}
+
+func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
+	const (
+		defaultPollInterval = 1 * time.Second
+	)
+
+	ctx := context.Background()
+
+	for {
+		timer := time.NewTimer(defaultPollInterval)
+
+		select {
+		case <-timer.C:
+			err := showBalanceUsecase.Execute(ctx)
+			if err != nil {
+				log.Println(err)
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
