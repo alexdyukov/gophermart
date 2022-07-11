@@ -58,17 +58,19 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number string, user *
 		return usecase.ErrIncorrectOrderNumber
 	}
 
-	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(orderNumber)
-	if err != nil {
-		log.Printf("%v", err)
-	}
+	//inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(orderNumber)
+	//if err != nil {
+	//	log.Printf("%v", err)
+	//}
 
-	if inputDTO == nil {
-		inputDTO = &CalculationStateDTO{
-			Accrual: 0,
-			Order:   number,
-			Status:  sharedkernel.NEW,
-		}
+	//if inputDTO == nil {
+
+	//}
+
+	inputDTO := &CalculationStateDTO{
+		Accrual: 0,
+		Order:   number,
+		Status:  sharedkernel.NEW,
 	}
 
 	userOrder := core.NewOrderNumber(orderNumber, inputDTO.Accrual, user.ID(), inputDTO.Status)
