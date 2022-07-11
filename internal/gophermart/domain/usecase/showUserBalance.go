@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
@@ -46,7 +45,6 @@ func (s *ShowUserBalance) Execute(ctx context.Context, user *sharedkernel.User) 
 		Current:   userAccount.CurrentBalance(),
 		Withdrawn: userAccount.WithdrawalsSum(),
 	}
-	fmt.Printf("output = %v", output)
 
 	return &output, nil
 }

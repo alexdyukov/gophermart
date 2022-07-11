@@ -82,25 +82,21 @@ func main() { // nolint:funlen // ok
 
 func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 	const (
-		DefaultPollInterval = 1 * time.Second
+		defaultPollInterval = 1 * time.Second
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-
-	defer cancel()
+	ctx := context.Background()
 
 	for {
-		timer := time.NewTimer(DefaultPollInterval)
+		timer := time.NewTimer(defaultPollInterval)
 
 		select {
 		case <-timer.C:
-
-			showBalanceUsecase.Execute(ctx)
-
+			err := showBalanceUsecase.Execute(ctx)
+			if err != nil {
+				log.Println(err)
+			}
 		case <-ctx.Done():
-
-			log.Printf("Stops at %v \n", time.Now())
-
 			return
 		}
 	}

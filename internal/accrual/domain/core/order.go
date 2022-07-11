@@ -47,8 +47,6 @@ func (ord *OrderReceipt) CalculateRewardPoints(rewards map[string]Reward) {
 		points += rew.RewardPoints()
 	}
 
-	// log.Println("calcalated->", points)
-
 	ord.Accrual = points
 	ord.Status = sharedkernel.PROCESSED
 }

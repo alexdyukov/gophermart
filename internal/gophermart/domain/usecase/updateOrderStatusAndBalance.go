@@ -27,7 +27,11 @@ type (
 	}
 )
 
-func NewUpdateOrderAndBalance(repo UpdateUserOrderBalanceRepository, gw UpdateCalculationStateGateway) *UpdateOrderAndBalance {
+func NewUpdateOrderAndBalance(
+	repo UpdateUserOrderBalanceRepository,
+	gw UpdateCalculationStateGateway,
+) *UpdateOrderAndBalance {
+	//
 	return &UpdateOrderAndBalance{
 		Repo:           repo,
 		ServiceGateway: gw,

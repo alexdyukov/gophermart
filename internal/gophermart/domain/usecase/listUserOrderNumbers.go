@@ -39,7 +39,6 @@ func NewListUserOrders(repo ListUserOrdersRepository) *ListUserOrders {
 }
 
 func (lou *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
-
 	orders, err := lou.Repo.FindAllOrders(ctx, user.ID())
 	if err != nil {
 		return nil, err
