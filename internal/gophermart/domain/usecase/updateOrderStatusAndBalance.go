@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
-	"log"
 )
 
 type (
@@ -35,10 +35,8 @@ func NewUpdateOrderAndBalance(repo UpdateUserOrderBalanceRepository, gw UpdateCa
 }
 
 func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
-
 	allOrders, err := uob.Repo.FindAllUnprocessedOrders(ctx)
 	if err != nil {
-		log.Println("UpdateOrderAndBalance #1:FindAllUnprocessedOrders - ошибка получения всех заказов")
 		return err // nolint:wrapcheck // ok
 	}
 
@@ -47,7 +45,6 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 	for _, order := range allOrders {
 		inputDTO, err := uob.ServiceGateway.GetOrderCalculationState(order.Number) // nolint:govet // ok.
 		if err != nil {
-			log.Println("UpdateOrderAndBalance #1: ошибка получения GetOrderCalculationState")
 			continue
 		}
 
@@ -60,8 +57,8 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 		if inputDTO.Status != order.Status {
 			sliceUsers = append(sliceUsers, order.User)
 			err = uob.Repo.SaveOrderWithoutCheck(ctx, &userOrder)
+
 			if err != nil {
-				log.Println("UpdateOrderAndBalance #1: ошибка сохранения заказа в бд")
 				continue
 			}
 		}
@@ -71,18 +68,26 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 
 	if len(sliceUsers) > 0 {
 		err = uob.Repo.UpdateUserBalance(ctx, sliceUsers)
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
 func removeDuplicateElement(sliceEl []string) []string {
 	result := make([]string, 0, len(sliceEl))
+
 	temp := map[string]struct{}{}
+
 	for _, item := range sliceEl {
 		if _, ok := temp[item]; !ok {
 			temp[item] = struct{}{}
+
 			result = append(result, item)
 		}
 	}
+
 	return result
 }

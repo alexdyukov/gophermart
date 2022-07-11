@@ -68,7 +68,6 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 }
 
 func (gdb *GophermartDB) FindAllUnprocessedOrders(ctx context.Context) ([]core.UserOrderNumber, error) {
-
 	result := make([]core.UserOrderNumber, 0)
 
 	query := `SELECT uid, orderNumber, userID, status, accrual, dateAndTime
@@ -88,7 +87,6 @@ func (gdb *GophermartDB) FindAllUnprocessedOrders(ctx context.Context) ([]core.U
 		err = rows.Scan(&ord.ID, &ord.Number, &ord.User, &ord.Status, &ord.Accrual, &ord.DateAndTime) //#
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				log.Printf("FindAllUnprocessedOrders: не нашли заказов нужных")
 				return nil, sql.ErrNoRows
 			}
 
@@ -100,7 +98,6 @@ func (gdb *GophermartDB) FindAllUnprocessedOrders(ctx context.Context) ([]core.U
 
 	err = rows.Err()
 	if err != nil {
-		log.Printf("FindAllUnprocessedOrders: ошибка rows.Err() %v", err)
 		return nil, err
 	}
 
@@ -124,7 +121,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	defer func() {
 		err = stmt.Close()
 		if err != nil {
-			log.Println(err)
+			log.Println("FindAccountByID :", err)
 		}
 	}()
 
@@ -136,7 +133,7 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	defer func() {
 		err = stmt.Close()
 		if err != nil {
-			log.Println(err)
+			log.Println("FindAccountByID :", err)
 		}
 	}()
 
@@ -176,7 +173,6 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 }
 
 func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) error {
-
 	var (
 		userID  string
 		balance sharedkernel.Money
@@ -184,7 +180,6 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 
 	stmt, err := gdb.PrepareContext(ctx, `SELECT accrual, userID FROM user_orders WHERE userID = ANY ($1) and status = $2`)
 	if err != nil {
-		log.Println("UpdateUserBalance: ошибка запроса ", err)
 		return err
 	}
 
@@ -197,26 +192,22 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 
 	rows, err := stmt.QueryContext(ctx, usrs, sharedkernel.PROCESSED)
 	if err != nil {
-		log.Println("UpdateUserBalance: ошибка выполнения запроса ", err)
 		return err //nolint:wrapcheck  // ok
 	}
 	trx, err := gdb.Begin()
 	if err != nil {
-		log.Println("UpdateUserBalance: ошибка транзакции ", err)
 		return err
 	}
 	defer trx.Rollback() // nolint:errcheck // ok
 
 	for rows.Next() {
-		if err := rows.Scan(&balance, &userID); err != nil {
-			log.Println("нет ничего")
+		err = rows.Scan(&balance, &userID)
+		if err != nil {
 			return err
 		}
 
-		log.Printf("UpdateUserBalance: такие данные user = %v, bal = %v ", userID, balance)
 		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), userID, balance)
 		if err != nil {
-			log.Printf("UpdateUserBalance: НЕ СМОГЛИ сохранить в таблицу UserAccount данные user = %v, bal = %v ", userID, balance)
 			return err
 		}
 
@@ -231,7 +222,6 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 	return nil
 }
 
-// nolint:cyclop // ok
 func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrderNumber) error {
 	exists, usrID, err := orderExists(ctx, gdb.DB, order.Number)
 	if err != nil || exists {
@@ -256,7 +246,6 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 	err = gdb.saveToTableUserOrders(ctx, trx, order.ID, order.User, order.Number,
 		order.Status, order.Accrual, order.DateAndTime)
 	if err != nil {
-		log.Println("не удалось сохранить заказ :", order.Number)
 		return err
 	}
 
@@ -269,9 +258,7 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 	return nil
 }
 
-// nolint:cyclop // ok
 func (gdb *GophermartDB) SaveOrderWithoutCheck(ctx context.Context, order *core.UserOrderNumber) error {
-
 	trx, err := gdb.Begin()
 	if err != nil {
 		return err
@@ -282,7 +269,6 @@ func (gdb *GophermartDB) SaveOrderWithoutCheck(ctx context.Context, order *core.
 	err = gdb.saveToTableUserOrders(ctx, trx, order.ID, order.User, order.Number,
 		order.Status, order.Accrual, order.DateAndTime)
 	if err != nil {
-		log.Println("не удалось сохранить заказ :", order.Number)
 		return err
 	}
 

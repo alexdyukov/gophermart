@@ -64,8 +64,7 @@ func main() { // nolint:funlen // ok
 		subRouter.Use(appMiddleware.Authentication(jwtGateway))
 		subRouter.Post("/api/user/orders", handler.RegisterUserOrderPostHandler(
 			usecase.NewLoadOrderNumber(gophermartStore, accrualGateway)))
-		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(
-			usecase.NewListUserOrders(gophermartStore, accrualGateway)))
+		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(usecase.NewListUserOrders(gophermartStore)))
 		subRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowUserBalance(gophermartStore)))
 		subRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawUserFunds(gophermartStore)))
 		subRouter.Get("/api/user/withdrawals", handler.GetWithdrawals(
@@ -85,20 +84,24 @@ func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 	const (
 		DefaultPollInterval = 1 * time.Second
 	)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+
 	defer cancel()
 
 	for {
 		timer := time.NewTimer(DefaultPollInterval)
+
 		select {
 		case <-timer.C:
 
 			showBalanceUsecase.Execute(ctx)
 
 		case <-ctx.Done():
+
 			log.Printf("Stops at %v \n", time.Now())
+
 			return
 		}
 	}
-
 }

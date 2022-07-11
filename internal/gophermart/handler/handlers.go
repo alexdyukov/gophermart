@@ -3,13 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
-	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"io"
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
+	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 // RegisterUserOrderPostHandler POST /api/user/orders — загрузка пользователем номера заказа для расчёта.
@@ -202,12 +202,8 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 
 			return
 		}
-		log.Printf("Запущен хендлер // GetWithdrawals (Список списаний)) %v  для пользователя %v \n", time.Now(), user.ID())
 
 		wdrls, err := listWithdrawalsUsecase.Execute(request.Context(), user)
-
-		log.Printf("Запущен хендлер // GetWithdrawals  wdrls = %v \n", wdrls)
-
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -223,8 +219,6 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 
 		default:
 			strJSON, err := json.Marshal(wdrls)
-
-			log.Printf("Запущен хендлер // GetWithdrawals  strJSON = %v \n", string(strJSON))
 			if err != nil {
 				writer.WriteHeader(http.StatusInternalServerError) // 500
 

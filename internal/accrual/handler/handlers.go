@@ -18,7 +18,7 @@ func OrderCalculationGetHandler(showOrderCalculationUsecase usecase.ShowOrderCal
 	return func(writer http.ResponseWriter, request *http.Request) {
 		number := chi.URLParam(request, "number")
 
-		//log.Println("requested order num->", number)
+		// log.Println("requested order num->", number)
 
 		output, err := showOrderCalculationUsecase.Execute(request.Context(), number)
 		if err != nil {
@@ -67,7 +67,7 @@ func RegisterOrderPostHandler(
 			return
 		}
 
-		//log.Println("register order->", string(bytes))
+		// log.Println("register order->", string(bytes))
 
 		orderReceiptDTO := usecase.RegisterOrderReceiptInputDTO{}
 
@@ -122,7 +122,7 @@ func RegisterMechanicPostHandler(registerRewardUsecase usecase.RegisterRewardMec
 			return
 		}
 
-		//log.Println("register mechanic->", string(bytes))
+		// log.Println("register mechanic->", string(bytes))
 
 		registerRewardInputDTO := usecase.RegisterRewardMechanicInputDTO{}
 
