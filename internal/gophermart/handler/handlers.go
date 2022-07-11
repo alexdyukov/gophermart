@@ -3,14 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
+	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"io"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
-	"github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 )
 
 // RegisterUserOrderPostHandler POST /api/user/orders — загрузка пользователем номера заказа для расчёта.
@@ -107,13 +106,14 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 // 500 — внутренняя ошибка сервера.
 func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		log.Printf("Запущен хендлер // GetBalance (Показать баланс)) %v \n", time.Now())
+
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
 
 			return
 		}
+		log.Printf("Запущен хендлер // GetBalance (Показать баланс)) %v  для пользователя %v \n", time.Now(), user.ID())
 
 		userBalance, err := showBalanceUsecase.Execute(request.Context(), user)
 		if err != nil {
