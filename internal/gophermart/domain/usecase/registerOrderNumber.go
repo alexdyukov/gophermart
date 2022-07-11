@@ -79,10 +79,11 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number string, user *
 		return err // nolint:wrapcheck // ok
 	}
 
-	sliceUsers := make([]string, 0)
-	sliceUsers = append(sliceUsers, user.ID())
-	log.Println("UpdateOrderAndBalance #1: пробуем обновить баланс у пользователя")
-	err = ruo.Repository.UpdateUserBalance(ctx, sliceUsers)
-
+	if inputDTO.Status == sharedkernel.PROCESSED {
+		sliceUsers := make([]string, 0)
+		sliceUsers = append(sliceUsers, user.ID())
+		log.Println("NewLoadOrderNumber: пробуем обновить баланс у пользователя")
+		err = ruo.Repository.UpdateUserBalance(ctx, sliceUsers)
+	}
 	return nil
 }
