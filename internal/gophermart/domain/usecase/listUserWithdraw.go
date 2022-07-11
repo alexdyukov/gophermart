@@ -19,7 +19,7 @@ type (
 
 	ListUserWithdrawalsOutputDTO struct {
 		ProcessedAt string             `json:"processed_at"` // nolint:tagliatelle // external requirements
-		Order       int64              `json:"order"`
+		Order       string             `json:"order"`
 		Sum         sharedkernel.Money `json:"sum"`
 	}
 
@@ -48,7 +48,7 @@ func (list *ListUserWithdrawals) Execute(ctx context.Context, user *sharedkernel
 	for _, withdraw := range *sliceAccountWithdrawals {
 		slwoDTO = append(slwoDTO,
 			ListUserWithdrawalsOutputDTO{
-				Order:       withdraw.OrderNumber,
+				Order:       string(withdraw.OrderNumber),
 				Sum:         withdraw.Amount,
 				ProcessedAt: withdraw.OperationTime.Format(time.RFC3339),
 			})
