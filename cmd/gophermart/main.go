@@ -3,17 +3,20 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	authUsecase "github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
+	"github.com/alexdyukov/gophermart/internal/gophermart/auth/gateway/token"
+	authHandler "github.com/alexdyukov/gophermart/internal/gophermart/auth/handler"
+	authPostgres "github.com/alexdyukov/gophermart/internal/gophermart/auth/repository/postgres"
 	"github.com/alexdyukov/gophermart/internal/gophermart/config"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/gateway/web"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler"
+	appMiddleware "github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
 	"github.com/alexdyukov/gophermart/internal/gophermart/repository/postgres"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"github.com/go-chi/chi"
 	chiMiddleware "github.com/go-chi/chi/middleware"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -64,6 +67,11 @@ func main() { // nolint:funlen // ok
 		fmt.Println("ошибка при записи заказа ", err)
 		return
 	}
+	//upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
+
+	//log.Println("запускаем го рутину")
+	//go PallStart(upd)
+
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
 
@@ -77,10 +85,11 @@ func main() { // nolint:funlen // ok
 		// subRouter.Use(appMiddleware.Authentication(jwtGateway))
 		subRouter.Post("/api/user/orders", handler.RegisterUserOrderPostHandler(
 			usecase.NewLoadOrderNumber(gophermartStore, accrualGateway)))
-		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(usecase.NewListUserOrders(gophermartStore)))
+		subRouter.Get("/api/user/orders", handler.ListUserOrdersGetHandler(
+			usecase.NewListUserOrders(gophermartStore, accrualGateway)))
 		subRouter.Get("/api/user/balance", handler.GetBalance(usecase.NewShowUserBalance(gophermartStore)))
 		subRouter.Post("/api/user/balance/withdraw", handler.PostWithdraw(usecase.NewWithdrawUserFunds(gophermartStore)))
-		subRouter.Get("/api/user/balance/withdrawals", handler.GetWithdrawals(
+		subRouter.Get("/api/user/withdrawals", handler.GetWithdrawals(
 			usecase.NewListUserWithdrawals(gophermartStore)))
 	})
 
@@ -92,4 +101,25 @@ func main() { // nolint:funlen // ok
 
 	err = server.ListenAndServe()
 	log.Print(err)
+}
+
+func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
+	const (
+		DefaultPollInterval = 1 * time.Second
+	)
+	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	//defer cancel()
+	ctx := context.Background()
+	for {
+		timer := time.NewTimer(DefaultPollInterval)
+		select {
+		case <-timer.C:
+			log.Println("пробуем получить баланс")
+			showBalanceUsecase.Execute(ctx)
+
+		case <-ctx.Done():
+			return
+		}
+	}
+
 }

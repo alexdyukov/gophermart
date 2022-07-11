@@ -29,7 +29,7 @@ type (
 var ErrNoRewards = errors.New("no rewards found by criteria")
 
 func NewCalculateReward(repo CalculationRewardRepository) *CalculateReward {
-	finder := regexp.MustCompile("[A-Z][A-Za-z-]+")
+	finder := regexp.MustCompile("[A-Z0-9a-z-]+")
 
 	return &CalculateReward{
 		Repo:        repo,

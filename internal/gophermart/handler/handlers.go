@@ -133,8 +133,8 @@ func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.Hand
 			return
 		}
 
-		writer.Header().Set("Content-Type", "application/json")
 		writer.WriteHeader(http.StatusOK)
+		writer.Header().Set("Content-Type", "application/json")
 
 		_, err = writer.Write(response)
 		if err != nil {
@@ -157,7 +157,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 		user := sharedkernel.RestoreUser("057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b", "olesya")
 
 		if !ok {
-			writer.WriteHeader(http.StatusUnauthorized)
+			writer.WriteHeader(http.StatusUnauthorized) // 401
 
 			return
 		}
@@ -198,7 +198,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 	}
 }
 
-// GetWithdrawals GET /api/user/balance/withdrawals — получение информации о выводе средств с накопительного счёта
+// GetWithdrawals GET /api/user/withdrawals — получение информации о выводе средств с накопительного счёта
 // 200 — успешная обработка запроса;
 // 204 — нет ни одного списания.
 // 401 — пользователь не авторизован.

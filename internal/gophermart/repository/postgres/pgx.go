@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -33,15 +32,8 @@ func NewGophermartDB(conn *sql.DB) (*GophermartDB, error) {
 func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.UserOrderNumber, error) {
 	result := make([]core.UserOrderNumber, 0)
 
-	query := `
-	SELECT
-	uid,
-	orderNumber,
-	status,
-	accrual,
-	dateAndTime
-	FROM public.user_orders
-	WHERE userID = $1
+	query := `SELECT uid, orderNumber, status,	accrual,dateAndTime
+	FROM public.user_orders WHERE userID = $1
  	ORDER BY dateAndTime
 	`
 
@@ -71,6 +63,48 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 	if err != nil {
 		return nil, err
 	}
+
+	return result, nil
+}
+
+func (gdb *GophermartDB) FindAllUnprocessedOrders(ctx context.Context) ([]core.UserOrderNumber, error) {
+	log.Println("пошли в FindAllUnprocessedOrders чтобы найти нужные заказы")
+	result := make([]core.UserOrderNumber, 0)
+
+	query := `SELECT uid, orderNumber, status,	accrual,dateAndTime
+	FROM public.user_orders WHERE status != $1
+ 	ORDER BY dateAndTime
+	`
+	log.Println("FindAllUnprocessedOrders: делаем запрос")
+	rows, err := gdb.QueryContext(ctx, query, sharedkernel.PROCESSED)
+	// only one cuddle assignment allowed before if statement for linter
+	if err != nil {
+		return result, err
+	}
+	defer rows.Close()
+
+	ord := core.UserOrderNumber{}
+
+	for rows.Next() {
+		err = rows.Scan(&ord.ID, &ord.Number, &ord.Status, &ord.Accrual, &ord.DateAndTime)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				log.Printf("FindAllUnprocessedOrders не нашли заказов нужных")
+				return nil, sql.ErrNoRows
+			}
+
+			return nil, err
+		}
+
+		result = append(result, ord)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println("FindAllUnprocessedOrders result= ", result)
 
 	return result, nil
 }
@@ -143,6 +177,60 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	return *acc, nil
 }
 
+func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) error {
+
+	var (
+		userID  string
+		balance sharedkernel.Money
+	)
+
+	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual), userID FROM user_orders WHERE userID = ANY ($1), status = ($2)`)
+	if err != nil {
+		log.Println("UpdateUserBalance: ошибка запроса ", err)
+		return err
+	}
+
+	log.Println("UpdateUserBalance: получили баланс по пользователю пробуем сохранить")
+	defer func() {
+		err = stmt.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	rows, err := stmt.QueryContext(ctx, usrs)
+	if err != nil {
+		return err //nolint:wrapcheck  // ok
+	}
+
+	trx, err := gdb.Begin()
+	if err != nil {
+		return err
+	}
+	defer trx.Rollback() // nolint:errcheck // ok
+
+	for rows.Next() {
+		if err := rows.Scan(&balance, &userID); err != nil {
+			return err
+		}
+		log.Println("UpdateUserBalance: такие данные ", balance)
+		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), userID, balance)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	err = trx.Commit() // шаг 4 — сохраняем изменения
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// nolint:cyclop // ok
 func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrderNumber) error {
 	exists, usrID, err := orderExists(ctx, gdb.DB, order.Number)
 	if err != nil || exists {
@@ -174,6 +262,17 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 
 	if err != nil {
 		return err
+	}
+
+	log.Printf("заказ %v со статусом %v пытаемся сохранить", order.Number, order.Status)
+	if order.Status == sharedkernel.PROCESSED {
+
+		sliceUsers := make([]string, 0, 1)
+		sliceUsers = append(sliceUsers, order.User)
+
+		log.Println("попробуем обновить баланс у пользователя ", order.User)
+
+		go gdb.UpdateUserBalance(ctx, sliceUsers)
 	}
 
 	return nil
@@ -232,21 +331,13 @@ func (gdb *GophermartDB) saveToTableUserOrders(
 	ON CONFLICT (orderNumber, userID) DO UPDATE SET status =$4, accrual = $5, dateAndTime = $6;
 	`)
 	if err != nil {
-		log.Printf("не смогли подготовить данные в user_orders, ошибка : ", err)
 		return err
 	}
 
-	// uid TEXT NOT NULL,
-	//	orderNumber	bigint NOT NULL,
-	//	userID TEXT,
-	//	status INT  NOT NULL,
-	//	accrual		numeric,
-	//	dateAndTime	timestamp,
 	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID,
 		status, sum, dateAndTime)
 
 	if err != nil {
-		log.Printf("не смогли сохранить данные в user_orders, ошибка : ", err)
 		return err
 	}
 
@@ -268,15 +359,11 @@ func (gdb *GophermartDB) saveToTableUserWithdrawals(
 	ON CONFLICT (orderNumber, userID) DO NOTHING;
 	`) // if we are find withdrawal don't rewrite it
 	if err != nil {
-		log.Printf("не смогли подготовить данные в user_withdrawals, ошибка : ", err)
 		return err
 	}
 
-	fmt.Println("у этого списания orderNumber: ", orderNumber)
 	_, err = stmt.ExecContext(ctx, uid, orderNumber, userID, sum, dateAndTime)
-
 	if err != nil {
-		log.Printf("не смогли сохранить данные в user_withdrawals, ошибка : ", err)
 		return err
 	}
 
@@ -295,14 +382,12 @@ func (gdb *GophermartDB) saveToTableUserAccount(
 	INSERT INTO user_account VALUES ($1, $2, $3)
 	ON CONFLICT (userID) DO UPDATE SET balance =$3;`)
 	if err != nil {
-		log.Printf("не смогли подготовить данные в user_account, ошибка : ", err)
 		return err
 	}
 
 	_, err = stmt.ExecContext(ctx, uid, userID, balance)
 
 	if err != nil {
-		log.Printf("не смогли сохранить данные в user_account, ошибка : ", err)
 		return err
 	}
 
@@ -335,7 +420,6 @@ func (gdb *GophermartDB) createTablesIfNotExist() error {
 												);
 												`)
 	if err != nil {
-		log.Printf("не смогли создать таблицы, ошибка : ", err)
 		return err // nolint:wrapcheck // ok
 	}
 
@@ -362,4 +446,21 @@ SELECT orderNumber, userID FROM public.user_orders WHERE orderNumber = $1;`
 	}
 
 	return true, userID, nil
+}
+
+func accountExists(ctx context.Context, gdb *sql.DB, userID string) (bool, error) {
+	//
+	const selectSQL = `
+	SELECT userID FROM public.user_account WHERE userID = $1;`
+
+	err := gdb.QueryRowContext(ctx, selectSQL, userID).Scan(&userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }

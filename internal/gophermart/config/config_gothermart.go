@@ -12,9 +12,9 @@ type Gophermart struct {
 }
 
 const (
-	DefaultAddress   = "127.0.0.1:8080"
+	DefaultAddress   = "127.0.0.1:8089"
 	DefaultDB        = ""
-	DefaultAddressAS = "127.0.0.1:8089"
+	DefaultAddressAS = "127.0.0.1:8088"
 )
 
 func NewGophermartConfig() *Gophermart {
