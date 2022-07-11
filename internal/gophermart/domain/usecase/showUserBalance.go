@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
@@ -35,7 +36,7 @@ func NewShowUserBalance(repo ShowUserBalanceRepository) *ShowUserBalance {
 
 func (s *ShowUserBalance) Execute(ctx context.Context, user *sharedkernel.User) (*ShowUserBalanceOutputDTO, error) {
 	userAccount, err := s.Repo.FindAccountByID(ctx, user.ID())
-	log.Printf("userAccount = %v \n", userAccount)
+	log.Printf("userAccount = %v \n", userAccount.CurrentBalance())
 	if err != nil {
 		return nil, err // nolint:wrapcheck // ok
 	}
@@ -44,6 +45,7 @@ func (s *ShowUserBalance) Execute(ctx context.Context, user *sharedkernel.User) 
 		Current:   userAccount.CurrentBalance(),
 		Withdrawn: userAccount.WithdrawalsSum(),
 	}
+	fmt.Printf("output = %v", output)
 
 	return &output, nil
 }

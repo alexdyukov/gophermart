@@ -157,6 +157,7 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 			return
 		}
 
+		log.Printf("Запущен хендлер // PostWithdraw (Спиать баллы)) %v  для пользователя %v \n  тело: %v \n", time.Now(), user.ID(), request.Body)
 		dto := usecase.WithdrawUserFundsInputDTO{} // nolint:exhaustivestruct // ok,  exhaustive // ok.
 
 		bytes, err := io.ReadAll(request.Body)
