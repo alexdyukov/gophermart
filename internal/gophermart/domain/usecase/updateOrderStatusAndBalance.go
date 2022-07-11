@@ -38,10 +38,11 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 
 	allOrders, err := uob.Repo.FindAllUnprocessedOrders(ctx)
 	if err != nil {
-		log.Printf("UpdateOrderAndBalance #1: ошибка получения всех заказов")
+		log.Println("UpdateOrderAndBalance #1: ошибка получения всех заказов")
 		return err // nolint:wrapcheck // ok
 	}
 
+	log.Println("allOrders = ", allOrders)
 	sliceUsers := make([]string, 0)
 
 	for _, order := range allOrders {
