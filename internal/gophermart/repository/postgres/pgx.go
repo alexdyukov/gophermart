@@ -263,6 +263,17 @@ func (gdb *GophermartDB) SaveUserOrder(ctx context.Context, order *core.UserOrde
 		return err
 	}
 
+	log.Printf("заказ %v со статусом %v пытаемся сохранить", order.Number, order.Status)
+	if order.Status == sharedkernel.PROCESSED {
+
+		sliceUsers := make([]string, 0, 1)
+		sliceUsers = append(sliceUsers, order.User)
+
+		log.Println("попробуем обновить баланс у пользователя ", order.User)
+
+		go gdb.UpdateUserBalance(ctx, sliceUsers)
+	}
+
 	return nil
 }
 
