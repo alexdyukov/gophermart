@@ -3,19 +3,15 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	authUsecase "github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
-	"github.com/alexdyukov/gophermart/internal/gophermart/auth/gateway/token"
-	authHandler "github.com/alexdyukov/gophermart/internal/gophermart/auth/handler"
-	authPostgres "github.com/alexdyukov/gophermart/internal/gophermart/auth/repository/postgres"
 	"github.com/alexdyukov/gophermart/internal/gophermart/config"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/gateway/web"
 	"github.com/alexdyukov/gophermart/internal/gophermart/handler"
-	appMiddleware "github.com/alexdyukov/gophermart/internal/gophermart/handler/middleware"
 	"github.com/alexdyukov/gophermart/internal/gophermart/repository/postgres"
 	"github.com/go-chi/chi"
 	chiMiddleware "github.com/go-chi/chi/middleware"
@@ -48,29 +44,29 @@ func main() { // nolint:funlen // ok
 		log.Fatal(err)
 	}
 
-	idUser := "057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b"
-	//	gophermartStore.SaveUser(ctx, "Oesya", "Olesya", idUser)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	//idUser := "057f2f06-9e6d-4cf2-aa77-7f4cc1a51f9b"
+	////	gophermartStore.SaveUser(ctx, "Oesya", "Olesya", idUser)
+	//ctx, cancel := context.WithCancel(context.Background())
+	//defer cancel()
 
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 888355533, 350, sharedkernel.PROCESSED, time.Date(2019, time.May, 15, 17, 45, 12, 0, time.Local))
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 324235553, 200, sharedkernel.NEW, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 988355568, 200, sharedkernel.PROCESSING, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
-	err = gophermartStore.SaveOrderTest(ctx, idUser, 104535323, 200, sharedkernel.PROCESSED, time.Date(2018, time.May, 15, 17, 45, 12, 0, time.Local))
-
-	err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 999999999, 50, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
-	err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 1000000, 60, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
-
-	err = gophermartStore.SaveUserAccountTest(ctx, idUser, 550, 110)
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 888355533, 350, sharedkernel.PROCESSED, time.Date(2019, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 324235553, 200, sharedkernel.NEW, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 988355568, 200, sharedkernel.PROCESSING, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 104535323, 200, sharedkernel.PROCESSED, time.Date(2018, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveOrderTest(ctx, idUser, 324235553, 200, sharedkernel.INVALID, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//
+	//err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 999999999, 50, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//err = gophermartStore.SaveWithdrawalsTest(ctx, idUser, 1000000, 60, time.Date(2022, time.May, 15, 17, 45, 12, 0, time.Local))
+	//
+	//err = gophermartStore.SaveUserAccountTest(ctx, idUser, 550, 110)
 
 	if err != nil {
 		fmt.Println("ошибка при записи заказа ", err)
 		return
 	}
-	//upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
+	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
 
-	//log.Println("запускаем го рутину")
-	//go PallStart(upd)
+	go PallStart(upd)
 
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
@@ -107,9 +103,9 @@ func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 	const (
 		DefaultPollInterval = 1 * time.Second
 	)
-	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	//defer cancel()
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
 	for {
 		timer := time.NewTimer(DefaultPollInterval)
 		select {

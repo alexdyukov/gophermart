@@ -2,14 +2,16 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
+	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"log"
 )
 
 type (
 	UpdateUserOrderBalanceRepository interface {
 		FindAllUnprocessedOrders(context.Context) ([]core.UserOrderNumber, error)
-		SaveUserOrder(context.Context, *core.UserOrderNumber) error
+		SaveOrderWithoutCheck(context.Context, *core.UserOrderNumber) error
 		UpdateUserBalance(context.Context, []string) error
 	}
 
@@ -46,10 +48,20 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 	sliceUsers := make([]string, 0)
 
 	for _, order := range allOrders {
-		inputDTO, err := uob.ServiceGateway.GetOrderCalculationState(order.Number) // nolint:govet // ok.
+		fmt.Printf("id = %v, num = %v, usr = %v, st =%v, acc= %v \n", order.ID, order.Number, order.User, order.Status, order.Accrual)
+
+		//inputDTO, err := uob.ServiceGateway.GetOrderCalculationState(order.Number) // nolint:govet // ok.
+		err = nil
+		log.Println("order = ", order)
+		inputDTO := &CalculationStateDTO{
+			"12345678903",
+			sharedkernel.PROCESSED,
+			50,
+		}
+
 		log.Println("inputDTO = ", inputDTO)
 		if err != nil {
-			log.Println("UpdateOrderAndBalance #1: ошибка получения GetOrderCalculationState")
+			log.Println("UpdateOrderAndBalance #1: ошибка получения GetOrderCalculationState:", err)
 			continue
 		}
 
@@ -57,14 +69,16 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 			continue
 		}
 
+		fmt.Println("#order.User = ", order.User)
 		userOrder := core.NewOrderNumber(order.Number, inputDTO.Accrual, order.User, inputDTO.Status)
+		fmt.Println("#userOrder = ", userOrder.User)
 
 		//if inputDTO.Status != order.Status {
-		log.Println("")
+		log.Println("UpdateOrderAndBalance сохраняем заказ")
 		sliceUsers = append(sliceUsers, order.User)
-		err = uob.Repo.SaveUserOrder(ctx, &userOrder)
+		err = uob.Repo.SaveOrderWithoutCheck(ctx, &userOrder)
 		if err != nil {
-			log.Println("UpdateOrderAndBalance #1: ошибка сохранения заказа в бд")
+			log.Println("UpdateOrderAndBalance #1: ошибка сохранения заказа в бд", err)
 			continue
 		}
 		log.Println("UpdateOrderAndBalance #1: сохранили заказ идем дальше")

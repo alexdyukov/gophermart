@@ -52,7 +52,7 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number string, user *
 	if !sharedkernel.ValidLuhn(number) {
 		return sharedkernel.ErrIncorrectOrderNumber
 	}
-
+	log.Println("usr = ", user.ID())
 	orderNumber, err := strconv.ParseInt(number, 10, 64) // nolint:gomnd // ok
 	if err != nil {
 		return usecase.ErrIncorrectOrderNumber
