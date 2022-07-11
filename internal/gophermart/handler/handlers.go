@@ -22,7 +22,6 @@ import (
 // 500 — внутренняя ошибка сервера.
 func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserOrderPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		//log.Printf("Запущен хендлер // RegisterUserOrderPostHandler (Добавление нового ЗАКАЗА) %v : %v",time.Now(), request.Body)
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -57,7 +56,6 @@ func RegisterUserOrderPostHandler(registerUserOrderUsecase usecase.RegisterUserO
 // 500 — внутренняя ошибка сервера.
 func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		//log.Printf("Запущен хендлер // ListUserOrdersGetHandler (Чтение списка заказов) %v",time.Now())
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
@@ -106,14 +104,12 @@ func ListUserOrdersGetHandler(listUserOrdersUsecase usecase.ListUserOrdersPrimar
 // 500 — внутренняя ошибка сервера.
 func GetBalance(showBalanceUsecase usecase.ShowUserBalancePrimaryPort) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-
 		user, ok := request.Context().Value(middleware.User).(*sharedkernel.User)
 		if !ok {
 			writer.WriteHeader(http.StatusUnauthorized)
 
 			return
 		}
-		log.Printf("Запущен хендлер // GetBalance (Показать баланс)) %v  для пользователя %v \n", time.Now(), user.ID())
 
 		userBalance, err := showBalanceUsecase.Execute(request.Context(), user)
 		if err != nil {
@@ -157,7 +153,6 @@ func PostWithdraw(withdrawFundsUsecase usecase.WithdrawFundsInputPort) http.Hand
 			return
 		}
 
-		log.Printf("Запущен хендлер // PostWithdraw (Спиать баллы)) %v  для пользователя %v \n  тело: %v \n", time.Now(), user.ID(), request.Body)
 		dto := usecase.WithdrawUserFundsInputDTO{} // nolint:exhaustivestruct // ok,  exhaustive // ok.
 
 		bytes, err := io.ReadAll(request.Body)
@@ -207,8 +202,12 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 
 			return
 		}
+		log.Printf("Запущен хендлер // GetWithdrawals (Список списаний)) %v  для пользователя %v \n", time.Now(), user.ID())
 
 		wdrls, err := listWithdrawalsUsecase.Execute(request.Context(), user)
+
+		log.Printf("Запущен хендлер // GetWithdrawals  wdrls = %v \n", wdrls)
+
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
@@ -224,6 +223,8 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 
 		default:
 			strJSON, err := json.Marshal(wdrls)
+
+			log.Printf("Запущен хендлер // GetWithdrawals  strJSON = %v \n", strJSON)
 			if err != nil {
 				writer.WriteHeader(http.StatusInternalServerError) // 500
 
