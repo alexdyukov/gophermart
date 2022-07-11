@@ -68,13 +68,14 @@ func (gdb *GophermartDB) FindAllOrders(ctx context.Context, uid string) ([]core.
 }
 
 func (gdb *GophermartDB) FindAllUnprocessedOrders(ctx context.Context) ([]core.UserOrderNumber, error) {
+	log.Println("пошли в FindAllUnprocessedOrders чтобы найти нужные заказы")
 	result := make([]core.UserOrderNumber, 0)
 
 	query := `SELECT uid, orderNumber, status,	accrual,dateAndTime
 	FROM public.user_orders WHERE status != $1
  	ORDER BY dateAndTime
 	`
-
+	log.Println("FindAllUnprocessedOrders: делаем запрос")
 	rows, err := gdb.QueryContext(ctx, query, sharedkernel.PROCESSED)
 	// only one cuddle assignment allowed before if statement for linter
 	if err != nil {
@@ -88,7 +89,8 @@ func (gdb *GophermartDB) FindAllUnprocessedOrders(ctx context.Context) ([]core.U
 		err = rows.Scan(&ord.ID, &ord.Number, &ord.Status, &ord.Accrual, &ord.DateAndTime)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				return nil, usecase.ErrBadCredentials
+				log.Printf("FindAllUnprocessedOrders не нашли заказов нужных")
+				return nil, sql.ErrNoRows
 			}
 
 			return nil, err
