@@ -224,7 +224,7 @@ func GetWithdrawals(listWithdrawalsUsecase usecase.ListUserWithdrawalsInputPort)
 		default:
 			strJSON, err := json.Marshal(wdrls)
 
-			log.Printf("Запущен хендлер // GetWithdrawals  strJSON = %v \n", strJSON)
+			log.Printf("Запущен хендлер // GetWithdrawals  strJSON = %v \n", string(strJSON))
 			if err != nil {
 				writer.WriteHeader(http.StatusInternalServerError) // 500
 

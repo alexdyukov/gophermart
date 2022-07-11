@@ -48,10 +48,8 @@ func main() { // nolint:funlen // ok
 		log.Fatal(err)
 	}
 
-	////upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
-	////
-	////log.Println("запускаем го рутину")
-	//go PallStart(upd)
+	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
+	go PallStart(upd)
 
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
@@ -94,11 +92,11 @@ func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 		timer := time.NewTimer(DefaultPollInterval)
 		select {
 		case <-timer.C:
-			log.Printf(" го рутина работает %v", time.Now())
+
 			showBalanceUsecase.Execute(ctx)
 
 		case <-ctx.Done():
-			log.Printf("го рутина работает stops at %v \n", time.Now())
+			log.Printf("Stops at %v \n", time.Now())
 			return
 		}
 	}
