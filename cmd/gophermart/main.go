@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	authUsecase "github.com/alexdyukov/gophermart/internal/gophermart/auth/domain/usecase"
 	"github.com/alexdyukov/gophermart/internal/gophermart/auth/gateway/token"
@@ -46,6 +48,10 @@ func main() { // nolint:funlen // ok
 		log.Fatal(err)
 	}
 
+	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
+
+	go PallStart(upd)
+
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
 
@@ -74,4 +80,25 @@ func main() { // nolint:funlen // ok
 
 	err = server.ListenAndServe()
 	log.Print(err)
+}
+
+func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
+	const (
+		DefaultPollInterval = 2 * time.Second
+	)
+	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	//defer cancel()
+	ctx := context.Background()
+	for {
+		timer := time.NewTimer(DefaultPollInterval)
+		select {
+		case <-timer.C:
+
+			showBalanceUsecase.Execute(ctx)
+
+		case <-ctx.Done():
+			return
+		}
+	}
+
 }
