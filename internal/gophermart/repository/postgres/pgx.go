@@ -195,6 +195,11 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 		return err //nolint:wrapcheck  // ok
 	}
 
+	err = rows.Err()
+	if err != nil {
+		return err
+	}
+
 	trx, err := gdb.Begin()
 	if err != nil {
 		return err
