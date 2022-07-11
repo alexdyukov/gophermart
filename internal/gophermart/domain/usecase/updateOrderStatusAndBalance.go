@@ -56,8 +56,10 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 		}
 
 		userOrder := core.NewOrderNumber(order.Number, inputDTO.Accrual, order.User, inputDTO.Status)
+		log.Println("userOrder :=", userOrder)
 
 		if inputDTO.Status != order.Status {
+			log.Println("inputDTO.Status != order.Status")
 			sliceUsers = append(sliceUsers, order.User)
 			err = uob.Repo.SaveUserOrder(ctx, &userOrder)
 			if err != nil {

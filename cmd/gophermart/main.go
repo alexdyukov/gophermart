@@ -93,7 +93,7 @@ func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 		timer := time.NewTimer(DefaultPollInterval)
 		select {
 		case <-timer.C:
-
+			log.Println("пробуем получить баланс")
 			showBalanceUsecase.Execute(ctx)
 
 		case <-ctx.Done():

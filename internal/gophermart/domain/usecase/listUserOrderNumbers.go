@@ -47,7 +47,7 @@ func NewListUserOrders(repo ListUserOrdersRepository, gw ListCalculationStateGat
 
 func (lou *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User) ([]ListUserOrdersOutputDTO, error) {
 	// Update orders
-	ord, err := lou.Repo.FindAllOrders(ctx, user.ID())
+	/*ord, err := lou.Repo.FindAllOrders(ctx, user.ID())
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (lou *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User)
 		if err != nil {
 			continue
 		}
-	}
+	}*/
 
 	orders, err := lou.Repo.FindAllOrders(ctx, user.ID())
 	if err != nil {
