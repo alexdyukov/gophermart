@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/alexdyukov/gophermart/internal/gophermart/domain/core"
-	"github.com/alexdyukov/gophermart/internal/sharedkernel"
 	"log"
 )
 
@@ -16,7 +15,7 @@ type (
 	}
 
 	UpdateUsrOrderAndBalancePrimaryPort interface {
-		Execute(context.Context) error
+		Execute() error
 	}
 
 	UpdateCalculationStateGateway interface {
@@ -36,7 +35,9 @@ func NewUpdateOrderAndBalance(repo UpdateUserOrderBalanceRepository, gw UpdateCa
 	}
 }
 
-func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
+func (uob *UpdateOrderAndBalance) Execute() error {
+
+	ctx := context.Background()
 
 	allOrders, err := uob.Repo.FindAllUnprocessedOrders(ctx)
 	if err != nil {
@@ -44,20 +45,15 @@ func (uob *UpdateOrderAndBalance) Execute(ctx context.Context) error {
 		return err // nolint:wrapcheck // ok
 	}
 
-	log.Println("allOrders = ", allOrders)
+	log.Println("UpdateOrderAndBalance: allOrders = ", allOrders)
 	sliceUsers := make([]string, 0)
 
 	for _, order := range allOrders {
 		fmt.Printf("id = %v, num = %v, usr = %v, st =%v, acc= %v \n", order.ID, order.Number, order.User, order.Status, order.Accrual)
 
-		//inputDTO, err := uob.ServiceGateway.GetOrderCalculationState(order.Number) // nolint:govet // ok.
+		inputDTO, err := uob.ServiceGateway.GetOrderCalculationState(order.Number) // nolint:govet // ok.
 		err = nil
 		log.Println("order = ", order)
-		inputDTO := &CalculationStateDTO{
-			"12345678903",
-			sharedkernel.PROCESSED,
-			50,
-		}
 
 		log.Println("inputDTO = ", inputDTO)
 		if err != nil {

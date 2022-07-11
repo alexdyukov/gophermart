@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -103,18 +102,13 @@ func PallStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
 	const (
 		DefaultPollInterval = 1 * time.Second
 	)
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-	defer cancel()
 
 	for {
 		timer := time.NewTimer(DefaultPollInterval)
 		select {
 		case <-timer.C:
-			log.Println("пробуем получить баланс")
-			showBalanceUsecase.Execute(ctx)
+			showBalanceUsecase.Execute()
 
-		case <-ctx.Done():
-			return
 		}
 	}
 
