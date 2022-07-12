@@ -80,14 +80,13 @@ func main() { // nolint:funlen // ok
 	log.Print(err)
 }
 
-func PollStart(showBalanceUsecase usecase.UpdateUsrOrderAndBalancePrimaryPort) {
+func PollStart(showBalanceUsecase usecase.UpdateUserOrderAndBalancePrimaryPort) {
 	const (
 		defaultPollInterval = 1 * time.Second
 	)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	// jdjd
 
 	for {
 		timer := time.NewTimer(defaultPollInterval)

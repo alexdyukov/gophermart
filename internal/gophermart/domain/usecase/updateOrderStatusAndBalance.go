@@ -13,7 +13,7 @@ type (
 		UpdateUserBalance(context.Context, []string) error
 	}
 
-	UpdateUsrOrderAndBalancePrimaryPort interface {
+	UpdateUserOrderAndBalancePrimaryPort interface {
 		Execute(context.Context) error
 	}
 
