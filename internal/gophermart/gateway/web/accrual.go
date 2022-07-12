@@ -30,12 +30,8 @@ func NewAccrualGateway(addr, path string) *AccrualGateway {
 func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int64) (*usecase.CalculationStateDTO, error) {
 	numStr := strconv.FormatInt(orderNumber, 10)
 
-	log.Println(ag.addr + ag.path + numStr)
-
 	response, err := ag.client.Get(ag.addr + ag.path + numStr)
 	if err != nil {
-		log.Println(err)
-
 		return nil, err
 	}
 
@@ -51,16 +47,12 @@ func (ag *AccrualGateway) GetOrderCalculationState(orderNumber int64) (*usecase.
 		return nil, err
 	}
 
-	log.Println("income bytes sub service", string(bytes))
-
 	dto := usecase.CalculationStateDTO{}
 
 	err = json.Unmarshal(bytes, &dto)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println("unmarshaled dto", dto)
 
 	return &dto, nil
 }

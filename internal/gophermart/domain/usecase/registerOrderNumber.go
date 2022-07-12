@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"log"
 	"strconv"
 
 	"github.com/alexdyukov/gophermart/internal/accrual/domain/usecase"
@@ -61,7 +60,7 @@ func (ruo *RegisterUserOrder) Execute(ctx context.Context, number string, user *
 
 	inputDTO, err := ruo.ServiceGateway.GetOrderCalculationState(orderNumber)
 	if err != nil {
-		log.Printf("%v", err)
+		return err
 	}
 
 	if inputDTO == nil {
