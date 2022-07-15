@@ -17,7 +17,9 @@ type AccrualDB struct {
 	*sql.DB
 }
 
-const pgxErrorRecordDuplicate = "23505"
+const (
+	pgxErrorRecordDuplicate = "23505"
+)
 
 func NewAccrualDB(conn *sql.DB) (*AccrualDB, error) {
 	accrualDB := AccrualDB{
