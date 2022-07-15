@@ -49,7 +49,10 @@ func main() { // nolint:funlen // ok
 	}
 
 	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
-	go PollStart(upd)
+
+	// this ctx in future will represent some cancelation mechanism which could
+	//be triggered with gracefull shutdown or from admin panel/orchestration service
+	go PollStart(upd, context.TODO())
 
 	appRouter := chi.NewRouter()
 	appRouter.Use(chiMiddleware.Recoverer)
@@ -80,7 +83,7 @@ func main() { // nolint:funlen // ok
 	log.Print(err)
 }
 
-func PollStart(showBalanceUsecase usecase.UpdateUserOrderAndBalancePrimaryPort) {
+func PollStart(showBalanceUsecase usecase.UpdateUserOrderAndBalancePrimaryPort, ctx context.Context) {
 	const (
 		defaultPollInterval = 1 * time.Second
 	)
@@ -98,6 +101,7 @@ func PollStart(showBalanceUsecase usecase.UpdateUserOrderAndBalancePrimaryPort) 
 				log.Println(err)
 			}
 		case <-ctx.Done():
+			timer.Stop()
 			return
 		}
 	}

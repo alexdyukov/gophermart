@@ -149,11 +149,6 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 		return core.Account{}, err
 	}
 
-	err = rows.Err()
-	if err != nil {
-		return core.Account{}, err
-	}
-
 	defer rows.Close()
 
 	withdrawalsHistory := make([]core.AccountWithdrawals, 0)
@@ -165,6 +160,11 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 
 		accountWithdrawals := core.RestoreAccountWithdrawals(operationTime, idWithdrawal, orderNumber, amount)
 		withdrawalsHistory = append(withdrawalsHistory, *accountWithdrawals)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return core.Account{}, err
 	}
 
 	acc := core.RestoreAccount(idAccount, userID, balance, withdrawalsHistory)
@@ -180,7 +180,7 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 		balance sharedkernel.Money
 	)
 
-	stmt, err := gdb.PrepareContext(ctx, `SELECT accrual, userID FROM user_orders WHERE userID = ANY ($1) and status = $2`)
+	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual), userID FROM user_orders WHERE userID = ANY ($1) and status = $2`)
 	if err != nil {
 		return err
 	}
@@ -195,11 +195,6 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 	rows, err := stmt.QueryContext(ctx, usrs, sharedkernel.PROCESSED)
 	if err != nil {
 		return err //nolint:wrapcheck  // ok
-	}
-
-	err = rows.Err()
-	if err != nil {
-		return err
 	}
 
 	trx, err := gdb.Begin()
@@ -219,6 +214,11 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 		if err != nil {
 			return err
 		}
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return err
 	}
 
 	err = trx.Commit() // шаг 4 — сохраняем изменения
