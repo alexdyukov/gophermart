@@ -154,7 +154,8 @@ func (gdb *GophermartDB) FindAccountByID(ctx context.Context, userID string) (co
 	withdrawalsHistory := make([]core.AccountWithdrawals, 0)
 
 	for rows.Next() {
-		if err := rows.Scan(&idWithdrawal, &orderNumber, &amount, &operationTime); err != nil {
+		err = rows.Scan(&idWithdrawal, &orderNumber, &amount, &operationTime)
+		if err != nil {
 			return core.Account{}, err
 		}
 
@@ -180,9 +181,9 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 		balance sharedkernel.Money
 	)
 
-	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual), userID FROM user_orders WHERE userID = ANY ($1) and status = $2 GROUP BY userID `)
+	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual), userID FROM user_orders 
+WHERE userID = ANY ($1) and status = $2 GROUP BY userID `)
 	if err != nil {
-		log.Println("PrepareContext err = ", err)
 		return err
 	}
 
@@ -195,7 +196,6 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 
 	rows, err := stmt.QueryContext(ctx, usrs, sharedkernel.PROCESSED)
 	if err != nil {
-		log.Println("QueryContext err = ", err)
 		return err //nolint:wrapcheck  // ok
 	}
 
@@ -209,12 +209,11 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 	for rows.Next() {
 		err = rows.Scan(&balance, &userID)
 		if err != nil {
-			log.Println("rows.Next() err = ", err)
 			return err
 		}
 
-		log.Printf("#new user %v balance = %v", userID, balance)
 		err = gdb.saveToTableUserAccount(ctx, trx, sharedkernel.NewUUID(), userID, balance)
+		//
 		if err != nil {
 			return err
 		}
