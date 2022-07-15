@@ -180,7 +180,7 @@ func (gdb *GophermartDB) UpdateUserBalance(ctx context.Context, usrs []string) e
 		balance sharedkernel.Money
 	)
 
-	stmt, err := gdb.PrepareContext(ctx, `SELECT SUM(accrual), userID FROM user_orders WHERE userID = ANY ($1) and status = $2`)
+	stmt, err := gdb.PrepareContext(ctx, `SELECT accrual, userID FROM user_orders WHERE userID = ANY ($1) and status = $2`)
 	if err != nil {
 		return err
 	}
