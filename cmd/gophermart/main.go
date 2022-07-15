@@ -50,7 +50,7 @@ func main() { // nolint:funlen // ok
 
 	upd := usecase.NewUpdateOrderAndBalance(gophermartStore, accrualGateway)
 
-	// this ctx in future will represent some cancelation mechanism which could
+	// this ctx in future will represent some cancellation mechanism which could
 	// be triggered with graceful shutdown or from admin panel/orchestration service
 	ctx := context.TODO()
 	go PollStart(ctx, upd)
@@ -89,6 +89,12 @@ func PollStart(ctx context.Context, showBalanceUsecase usecase.UpdateUserOrderAn
 		defaultPollInterval = 1 * time.Second
 	)
 
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatalf("fatal poller error: %v", r)
+		}
+	}()
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -101,6 +107,7 @@ func PollStart(ctx context.Context, showBalanceUsecase usecase.UpdateUserOrderAn
 			if err != nil {
 				log.Println(err)
 			}
+
 		case <-ctx.Done():
 			timer.Stop()
 
