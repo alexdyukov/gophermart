@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"log"
 	"strconv"
 	"time"
 
@@ -43,8 +42,6 @@ func (lou *ListUserOrders) Execute(ctx context.Context, user *sharedkernel.User)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println(orders)
 
 	lstOrdNumsDTO := make([]ListUserOrdersOutputDTO, 0, len(orders))
 

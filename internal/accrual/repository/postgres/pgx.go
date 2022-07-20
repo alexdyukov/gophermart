@@ -17,6 +17,10 @@ type AccrualDB struct {
 	*sql.DB
 }
 
+const (
+	pgxErrorRecordDuplicate = "23505"
+)
+
 func NewAccrualDB(conn *sql.DB) (*AccrualDB, error) {
 	accrualDB := AccrualDB{
 		conn,
@@ -71,7 +75,7 @@ VALUES ($1,$2,$3)`)
 	if err != nil {
 		var pgError *pgconn.PgError
 		if ok := errors.As(err, &pgError); ok {
-			if pgError.Code == "23505" {
+			if pgError.Code == pgxErrorRecordDuplicate {
 				return usecase.ErrOrderAlreadyExist
 			}
 
@@ -113,7 +117,7 @@ func (accdb *AccrualDB) SaveRewardMechanic(ctx context.Context, reward *core.Rew
 	if err != nil {
 		var pgError *pgconn.PgError
 		if ok := errors.As(err, &pgError); ok {
-			if pgError.Code == "23505" {
+			if pgError.Code == pgxErrorRecordDuplicate {
 				return usecase.ErrRewardAlreadyExists
 			}
 
